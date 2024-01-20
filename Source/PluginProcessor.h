@@ -37,6 +37,8 @@ public:
    #endif
 
     // LRN All audio processing is done here
+    // LRN & after type is to signify pass-by-ref; not a pointer, not a copy, 
+    //  it's the object itself
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     //==============================================================================

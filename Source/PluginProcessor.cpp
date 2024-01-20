@@ -10,6 +10,10 @@
 #include "PluginEditor.h"
 
 //==============================================================================
+// LRN the syntax "constructor() : member1(value1), member2(value2), ..." is
+//  called member initialization; allows to init members of class with values
+//  Here the synth has a parent class in which we may want to specify the constructor
+//  used (defined by the preproc conditions)
 CppsynthAudioProcessor::CppsynthAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
@@ -114,6 +118,9 @@ bool CppsynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
     // In this template code we only support mono or stereo.
     // Some plugin hosts, such as certain GarageBand versions, will only
     // load plugins that support stereo bus layouts.
+    
+    // LRN this currently means that it will return false (not supported) unless
+    //  we are in mono or stereo
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
      && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
@@ -129,9 +136,19 @@ bool CppsynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 }
 #endif
 
+// LRN buffer is where the synth will place audio samples it generates (output)
+// LRN midiMessages are incoming MIDI msg
 void CppsynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    // LRN sets a special CPU flag for the duration of function that will
+    //  automatically truncate floating point numbers to zero instead
+    //  of turning them into denormal numbers (since denormal numbers are
+    //  very slow; they are very close to 0 so we consider them to be 0)
     juce::ScopedNoDenormals noDenormals;
+    
+    // LRN auto keyword automatically detects and assigns a data type to the
+    //  variable (compiler looks at its initialization; here it's int, the return
+    //  type of getTotalNumInputChannels())
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
