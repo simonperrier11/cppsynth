@@ -36,8 +36,8 @@ public:
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
    #endif
 
-    // LRN All audio processing is done here
-    // LRN & after type is to signify pass-by-ref; not a pointer, not a copy, 
+    // LRN All audio processing is done here; process one block of sampleSize
+    // LRN & after type is to signify pass-by-ref; not a pointer, not a copy,
     //  it's the object itself
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
@@ -66,6 +66,23 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    /**
+     Splits a buffer into segments by the corresponding MIDI events (aligned with timestamps) in order to
+     properly handle noteOn and noteOff events of a same MIDI source in a block
+     */
+    void splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages);
+    
+    /**
+     Handles the MIDI data : data0 contains event code, data1 and data2 contains event data
+     */
+    // LRN uint8_t is a cross-platform compatible unsigned int of 8 bytes
+    void handleMidi(uint8_t data0, uint8_t data1, uint8_t data2);
+    
+    /**
+     Renders the audio in buffer
+     */
+    void render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset);
+    
     //==============================================================================
     // LRN Disable copy constructor (constructor that takes reference to other object of
     // same class) so the class cannot be copied

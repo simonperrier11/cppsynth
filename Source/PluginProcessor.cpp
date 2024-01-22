@@ -160,19 +160,76 @@ void CppsynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+    // Split buffer in segments by MIDI events, and process them
+    splitBufferByEvents(buffer, midiMessages);
+    
+//    // This is the place where you'd normally do the guts of your plugin's
+//    // audio processing...
+//    // Make sure to reset the state if your inner loop is processing
+//    // the samples and the outer loop is handling the channels.
+//    // Alternatively, you can process the samples with the channels
+//    // interleaved by keeping the same state.
+//    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+//    {
+//        auto* channelData = buffer.getWritePointer (channel);
+//
+//        // ..do something to the data...
+//    }
+}
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
+void CppsynthAudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+{
+    int bufferOffset = 0;
+    
+    // Iterate through midiMessages
+    for (const auto metadata : midiMessages) {
+        // LRN the status byte is in metadata.data[0], the data bytes are in
+        //  metadata.data[1] and metadata.data[2], the timestampe is in
+        //  metadata.samplePosition (nb of samples relative to the start of the AudioBuffer)
+        
+        // Render audio up to the event's timestamp, if any
+        int samplesThisSegment = metadata.samplePosition - bufferOffset;
+        if (samplesThisSegment > 0) {
+            render(buffer, samplesThisSegment, bufferOffset);
+            
+            // Increment offset by nb of samples for this segment
+            bufferOffset += samplesThisSegment;
+        }
+        
+        // Handle event (ignore MIDI sysex messages, which have more than 3 bytes)
+        if (metadata.numBytes <= 3) {
+            // Get data bytes if they exist
+            uint8_t data1 = (metadata.numBytes >= 2) ? metadata.data[1] : 0;
+            uint8_t data2 = (metadata.numBytes == 3) ? metadata.data[2] : 0;
+            
+            // Status byte is in metadata.data[0]
+            handleMidi(metadata.data[0], data1, data2);
+        }
     }
+    
+    // Render audio after last MIDI event, if any; if there were no events, the whole
+    // buffer is rendered
+    int samplesLastSegment = buffer.getNumSamples() - bufferOffset;
+    if (samplesLastSegment > 0) {
+        render(buffer, samplesLastSegment, bufferOffset);
+    }
+    
+    // Let JUCE know all MIDI events have been processed
+    midiMessages.clear();
+}
+
+void CppsynthAudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t data2)
+{
+    char s[16];
+    // LRN write formatted output to sized buffer, instead of directly printing it
+    snprintf(s, 16, "%02hhX %02hhX %02hhX", data0, data1, data2);
+    DBG(s);
+}
+
+void CppsynthAudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
+{
+    // TODO render audio
 }
 
 //==============================================================================
@@ -206,3 +263,4 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new CppsynthAudioProcessor();
 }
+
