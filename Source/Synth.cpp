@@ -30,11 +30,32 @@ void Synth::deallocateResources()
 void Synth::reset()
 {
     voice.reset();
+    whiteNoiseGen.reset();
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
 {
-    // TOOD
+    float* outputBufferLeft = outputBuffers[0];
+    float* outputBufferRight = outputBuffers[1];
+
+    // For all the samples we need to render (sampleCount)...
+    for (int sample = 0; sample < sampleCount; ++sample) {
+        // Get next noise value
+        float noise = whiteNoiseGen.nextValue();
+        float output = 0.0f;
+        
+        if (voice.note > 0) {
+            // Multiply noise by velocity (which is divided by 127),
+            // 6dB reduction (* 0.5), then put in output
+            output = noise * (voice.velocity / 127.0f) * 0.5f;
+        }
+        
+        // Write value in buffers
+        outputBufferLeft[sample] = output;
+        if (outputBufferRight != nullptr) {
+            outputBufferRight[sample] = output;
+        }
+    }
 }
 
 void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)

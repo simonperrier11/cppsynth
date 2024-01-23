@@ -15,6 +15,7 @@
 #include <JuceHeader.h>
 #include "Constants.h"
 #include "Voice.h"
+#include "WhiteNoiseGenerator.h"
 
 /**
  Represents the synthesizer as a whole. The synthesizer handles MIDI, renders audio.
@@ -40,18 +41,19 @@ public:
     void reset();
     
     /**
-     Renders audio in outputBuffers.
+     Renders audio in outputBuffers, which point to the first and second channels.
      */
     void render(float** outputBuffers, int sampleCount);
     
     /**
-     TODO
+     Parses and handles the MIDI message. First argument is the command byte.
      */
     void midiMessage(uint8_t data0, uint8_t data1, uint8_t data2);
     
 private:
     float sampleRate;
     Voice voice;
+    WhiteNoiseGenerator whiteNoiseGen;
     
     /**
      Handles the Note On command.
