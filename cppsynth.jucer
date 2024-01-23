@@ -7,6 +7,8 @@
               pluginCode="csyn">
   <MAINGROUP id="j56MzC" name="cppsynth">
     <GROUP id="{21F9D328-4824-2EC7-C8E4-F87A0662B99D}" name="Source">
+      <FILE id="I6Yynu" name="WhiteNoiseGenerator.h" compile="0" resource="0"
+            file="Source/WhiteNoiseGenerator.h"/>
       <FILE id="e6gMkH" name="Constants.h" compile="0" resource="0" file="Source/Constants.h"/>
       <FILE id="Cp3weF" name="Voice.h" compile="0" resource="0" file="Source/Voice.h"/>
       <FILE id="QRpocH" name="Synth.cpp" compile="1" resource="0" file="Source/Synth.cpp"/>
