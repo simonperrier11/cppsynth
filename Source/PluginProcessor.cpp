@@ -187,6 +187,7 @@ void CppsynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
 
 void CppsynthAudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    // Offset in samples
     int bufferOffset = 0;
     
     // Iterate through midiMessages
@@ -195,7 +196,7 @@ void CppsynthAudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffe
         //  metadata.data[1] and metadata.data[2], the timestampe is in
         //  metadata.samplePosition (nb of samples relative to the start of the AudioBuffer)
         
-        // Render audio up to the event's timestamp, if any
+        // Render audio up to the event's timestamp (calculated in samples), if any
         int samplesThisSegment = metadata.samplePosition - bufferOffset;
         if (samplesThisSegment > 0) {
             render(buffer, samplesThisSegment, bufferOffset);
@@ -230,6 +231,7 @@ void CppsynthAudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t da
 {
     // Pass the MIDI msg to Synth
     synth.midiMessage(data0, data1, data2);
+
 //    // Debug code
 //    char s[16];
 //    // Write formatted output to sized buffer, instead of directly printing it
@@ -239,7 +241,20 @@ void CppsynthAudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t da
 
 void CppsynthAudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
 {
-    // TODO render audio
+    // Create array of 2 float* pointers, one for the left channel, the other
+    // for the right channel
+    float* outputBuffers[2] = { nullptr, nullptr };
+    
+    // Get a WRITE pointer to the audio data inside the AudioBuffer object (channel 0)
+    // Because the AudioBuffer is "split" and rendered based on the
+    // timestamps of the MIDI events, add bufferOffset
+    outputBuffers[0] = buffer.getWritePointer(0) + bufferOffset;
+    
+    if (getTotalNumOutputChannels() > 1) {
+        outputBuffers[1] = buffer.getWritePointer(1) + bufferOffset;
+    }
+    
+    synth.render(outputBuffers, sampleCount);
 }
 
 //==============================================================================
