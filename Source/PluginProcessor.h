@@ -10,13 +10,14 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Synth.h"
 
 //==============================================================================
 /**
- LRN The CppsynthAudioProcessor class extends the juce::AudioProcessor, which contains all audio processing classes
- and functions.
+ Represents the core processor of the plugin. The CppsynthAudioProcessor class extends the juce::AudioProcessor,
+ which contains all audio processing classes and functions.
 */
-class CppsynthAudioProcessor  : public juce::AudioProcessor
+class CppsynthAudioProcessor : public juce::AudioProcessor
 {
 public:
     //==============================================================================
@@ -30,6 +31,8 @@ public:
     
     // LRN Releases resources
     void releaseResources() override;
+    
+    void reset() override;
 
     // LRN #conditionals are preprocessor directives (before compilation)
    #ifndef JucePlugin_PreferredChannelConfigurations
@@ -66,6 +69,8 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    Synth synth;
+    
     /**
      Splits a buffer into segments by the corresponding MIDI events (aligned with timestamps) in order to
      properly handle noteOn and noteOff events of a same MIDI source in a block

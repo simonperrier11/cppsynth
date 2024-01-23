@@ -28,6 +28,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
 {
 }
 
+// LRN ~ before constructor name is destructor
 CppsynthAudioProcessor::~CppsynthAudioProcessor()
 {
 }
@@ -97,14 +98,20 @@ void CppsynthAudioProcessor::changeProgramName (int index, const juce::String& n
 //==============================================================================
 void CppsynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    // Allocate memory needed for Synth, then reset
+    synth.allocateResources(sampleRate, samplesPerBlock);
+    reset();
 }
 
 void CppsynthAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+    // Free memory used by Synth
+    synth.deallocateResources();
+}
+
+void CppsynthAudioProcessor::reset()
+{
+    synth.reset();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -221,10 +228,13 @@ void CppsynthAudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffe
 
 void CppsynthAudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t data2)
 {
-    char s[16];
-    // LRN write formatted output to sized buffer, instead of directly printing it
-    snprintf(s, 16, "%02hhX %02hhX %02hhX", data0, data1, data2);
-    DBG(s);
+    // Pass the MIDI msg to Synth
+    synth.midiMessage(data0, data1, data2);
+//    // Debug code
+//    char s[16];
+//    // Write formatted output to sized buffer, instead of directly printing it
+//    snprintf(s, 16, "%02hhX %02hhX %02hhX", data0, data1, data2);
+//    DBG(s);
 }
 
 void CppsynthAudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
