@@ -46,9 +46,12 @@ void Synth::render(float** outputBuffers, int sampleCount)
         float output = 0.0f;
         
         if (voice.note > 0) {
+            // TODO still allow to render noise
             // Multiply noise by velocity (which is divided by 127),
             // 6dB reduction (* 0.5), then put in output
-            output = noise * (voice.velocity / 127.0f) * 0.5f;
+            // output = noise * (voice.velocity / 127.0f) * 0.5f;
+            
+            output = voice.render();
         }
         
         // Write value in buffers
@@ -96,7 +99,16 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
 void Synth::noteOn(int note, int velocity)
 {
     voice.note = note;
-    voice.velocity = velocity;
+    //voice.velocity = velocity;
+    
+    float freq = 261.63f;
+    
+    voice.osc.amplitude = (velocity / 127.0f) * 0.5f;
+//    voice.osc.freq = freq;
+//    voice.osc.sampleRate = sampleRate;
+//    voice.osc.phaseOffset = 0.0f;
+    voice.osc.increment = freq / sampleRate;
+    voice.osc.reset();
 }
 
 void Synth::noteOff(int note, int velocity)
@@ -104,6 +116,6 @@ void Synth::noteOff(int note, int velocity)
     // TODO if noteOff velocity is to be implemented, use here
     if (voice.note == note) {
         voice.note = constants::noNoteValue;
-        voice.velocity = 0;
+        //voice.velocity = 0;
     }
 }

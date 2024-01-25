@@ -10,6 +10,7 @@
 
 #pragma once
 #include "Constants.h"
+#include "Oscillator.h"
 
 // LRN we can use a struct instead of a class when we don't need private/protected
 //  and other inheritance shenanigans (class defaults to private, struct to public)
@@ -21,6 +22,7 @@ struct Voice
 {
     int note;
     int velocity;
+    Oscillator osc;
     
     /**
      Resets the state of the voice instance.
@@ -28,7 +30,17 @@ struct Voice
     void reset()
     {
         note = constants::noNoteValue;
-        velocity = 0;
+        //velocity = 0;
+        
+        osc.reset();
+    }
+    
+    /**
+      Renders the next value of the oscillator.
+     */
+    float render()
+    {
+        return osc.nextSample();
     }
 };
 

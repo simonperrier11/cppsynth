@@ -18,4 +18,7 @@ namespace constants
 {
     // The value used for non-playing notes
     inline constexpr int noNoteValue { -1 };
+
+    // Approximation of 2 * pi
+    inline constexpr float twoPi { 6.2831853071795864f };
 }
