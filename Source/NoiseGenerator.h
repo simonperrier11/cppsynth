@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    WhiteNoiseGenerator.h
+    NoiseGenerator.h
     Created: 23 Jan 2024 3:26:59pm
     Author:  Simon Perrier
 
@@ -10,34 +10,11 @@
 
 #pragma once
 
-//#include <juce_Random.h>
-//
-//class WhiteNoiseGenerator
-//{
-//public:
-//    WhiteNoiseGenerator()
-//    {
-//        random = new Random();
-//    }
-//    
-//    ~WhiteNoiseGenerator();
-//    
-//    void reset()
-//    {
-//        random.setSeedRandomly();
-//    }
-//    
-//    float nextValue()
-//    {
-//        return random.nextFloat();
-//    }
-//    
-//private:
-//    juce::Random random;
-//};
+// TODO NoiseGenerator should be a parent class (interface?) and have
+// other classes inheriting from it : white, pink etc.
 
-// TODO replace this with JUCE built-in Random
-class WhiteNoiseGenerator
+// TODO replace pseudo-rand this with JUCE built-in Random for white noise
+class NoiseGenerator
 {
 public:
     void reset()

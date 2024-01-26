@@ -31,7 +31,7 @@ void Synth::deallocateResources()
 void Synth::reset()
 {
     voice.reset();
-    whiteNoiseGen.reset();
+    noiseGen.reset();
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -42,7 +42,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
     // For all the samples we need to render (sampleCount)...
     for (int sample = 0; sample < sampleCount; ++sample) {
         // Get next noise value
-        float noise = whiteNoiseGen.nextValue();
+        float noise = noiseGen.nextValue();
         float output = 0.0f;
         
         if (voice.note > 0) {

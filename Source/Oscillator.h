@@ -10,7 +10,8 @@
 
 #pragma once
 
-// 2 * pi
+// TODO Oscillator should be a parent class (interface?) and have
+// other classes inheriting from it : sine, saw, tri, etc.
 
 /**
  Represents an oscillator for the Synth. For now, it's a simple sine oscillator.
@@ -23,13 +24,13 @@ public:
 //    float sampleRate;
 //    float phaseOffset;
 //    int sampleIndex; // period is expressed in samples instead of time
-    float increment; // determines the incrementation speed of phasor
-    float phasor; // modulo counter from 0.0 to 1.0
+    float increment; // determines the incrementation speed of phase
+    float phase; // modulo counter from 0.0 to 1.0
     
     void reset()
     {
         //sampleIndex = 0;
-        phasor = 0.0f;
+        phase = 0.0f;
     }
     
     float nextSample()
@@ -42,15 +43,16 @@ public:
 //        
 //        return output;
         
-        phasor += increment;
-        if (phasor >= 1.0f) {
+        phase += increment;
+        if (phase >= 1.0f) {
             // Wrap back around phase to 0
             // We don't set it directly to 0, because if the value went a little
             // over 1.0, we want to keep its "extra progress" when resetting
-            phasor -= 1.0f;
+            phase -= 1.0f;
         }
         
-        // The std::sin function takes an argument in radians. To render one cycle of the sine wave, the angle should go from 0 to 2*pi, which is the same as 0 to 360 degrees. After 360 degrees, the cycle repeats.
-        return amplitude * std::sin(constants::twoPi * phasor);
+        // Multiply amplitude by the sin() function of 2pi * (0.0 to 1.0),
+        // which is the full cycle of the sine wave (0 to 360 degrees)
+        return amplitude * std::sin(constants::twoPi * phase);
     }
 };

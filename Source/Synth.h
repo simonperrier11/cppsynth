@@ -15,7 +15,7 @@
 #include <JuceHeader.h>
 #include "Constants.h"
 #include "Voice.h"
-#include "WhiteNoiseGenerator.h"
+#include "NoiseGenerator.h"
 
 /**
  Represents the synthesizer as a whole. The synthesizer handles MIDI, renders audio.
@@ -53,7 +53,7 @@ public:
 private:
     float sampleRate;
     Voice voice;
-    WhiteNoiseGenerator whiteNoiseGen;
+    NoiseGenerator noiseGen;
     
     /**
      Handles the Note On command.
