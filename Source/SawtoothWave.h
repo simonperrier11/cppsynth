@@ -13,23 +13,50 @@
 #include "Oscillator.h"
 
 /**
- Represents a sawtooth wave for an oscillator.
+ Represents a band-limited sawtooth wave for an oscillator.
  */
 class SawtoothWave : public Oscillator
 {
 public:
+    float freq;
+    float sampleRate;
+    float phaseBL; // phase counter for band-limited
+    
     void reset() override
     {
         phase = 0.0f;
+        phaseBL = -0.5f;
+    }
+    
+    float nextBandLimitedSample()
+    {
+        phaseBL += increment;
+        if (phaseBL >= 1.0f) {
+            phaseBL -= 1.0f;
+        }
+        
+        /*
+         Band-limited sawtooth formula for a fundamental freq :
+         2/pi * (sin(fund) - (sin(2*fund) / 2) + (sin(3*fund) / 3) - (sin(4*fund) / 4) + ...)
+         */
+        float output = 0.0f;
+        float nyquist = sampleRate / 2.0f;
+        float h = freq;
+        float i = 1.0f;
+        float m = constants::twoPi;
+        
+        // Add up sine waves in output until we reach the nyquist limit
+        while (h < nyquist) {
+            output += m * std::sin(constants::twoPi * phaseBL * i) / i;
+            h += freq; // get frequency of the next harmonic
+            i += 1.0f; // which harmonic we're currently at
+            m = -m; // scaling factor 2/pi and sign flipping
+        }
+        return output;
     }
     
     float nextSample() override
     {
-        phase += increment;
-        if (phase >= 1.0f) {
-            phase -= 1.0f; // wrap back around to 0
-        }
-        
-        return amplitude * (2.0f * phase - 1.0f);
+        return amplitude * nextBandLimitedSample();
     }
 };

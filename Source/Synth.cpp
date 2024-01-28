@@ -60,8 +60,9 @@ void Synth::render(float** outputBuffers, int sampleCount)
         }
     }
     
-    loudnessProtectBuffer(outputBufferLeft, sampleCount);
-    loudnessProtectBuffer(outputBufferRight, sampleCount);
+    // TODO put this back!
+//    loudnessProtectBuffer(outputBufferLeft, sampleCount);
+//    loudnessProtectBuffer(outputBufferRight, sampleCount);
 }
 
 void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
@@ -112,6 +113,8 @@ void Synth::noteOn(int note, int velocity)
     
     voice.sawOsc.amplitude = (velocity / 127.0f) * 0.5f;
     voice.sawOsc.increment = freq / sampleRate;
+    voice.sawOsc.freq = freq;
+    voice.sawOsc.sampleRate = sampleRate;
     voice.sawOsc.reset();
 }
 
