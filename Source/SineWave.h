@@ -22,11 +22,6 @@ public:
 //    float sampleRate;
 //    float phaseOffset;
 //    int sampleIndex; // period is expressed in samples instead of time
-    
-    
-    float sin0;
-    float sin1;
-    float dsin;
         
     void reset() override
     {
@@ -68,4 +63,9 @@ public:
         sin0 = sinx;
         return sinx;
     }
+
+private:
+    float sin0;
+    float sin1;
+    float dsin;
 };
