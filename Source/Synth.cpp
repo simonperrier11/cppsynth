@@ -46,10 +46,9 @@ void Synth::render(float** outputBuffers, int sampleCount)
         float output = 0.0f;
         
         if (voice.note > 0) {
-            // TODO still allow to render noise
             // Multiply noise by velocity (which is divided by 127),
             // 6dB reduction (* 0.5), then put in output
-            // output = noise * (voice.velocity / 127.0f) * 0.5f;
+//            output = noise * (voice.velocity / 127.0f) * 0.5f;
             
             output = voice.render();
         }
@@ -104,12 +103,16 @@ void Synth::noteOn(int note, int velocity)
     // Convert MIDI note to frequency
     float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
     
-    voice.osc.amplitude = (velocity / 127.0f) * 0.5f;
+    voice.sineOsc.amplitude = (velocity / 127.0f) * 0.5f;
 //    voice.osc.freq = freq;
 //    voice.osc.sampleRate = sampleRate;
-//    voice.osc.phaseOffset = 0.0f;`
-    voice.osc.increment = freq / sampleRate;
-    voice.osc.reset();
+//    voice.osc.phaseOffset = 0.0f;
+    voice.sineOsc.increment = freq / sampleRate;
+    voice.sineOsc.reset();
+    
+    voice.sawOsc.amplitude = (velocity / 127.0f) * 0.5f;
+    voice.sawOsc.increment = freq / sampleRate;
+    voice.sawOsc.reset();
 }
 
 void Synth::noteOff(int note, int velocity)

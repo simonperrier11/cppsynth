@@ -10,7 +10,8 @@
 
 #pragma once
 #include "Constants.h"
-#include "Oscillator.h"
+#include "SineWave.h"
+#include "SawtoothWave.h"
 
 // LRN we can use a struct instead of a class when we don't need private/protected
 //  and other inheritance shenanigans (class defaults to private, struct to public)
@@ -22,7 +23,8 @@ struct Voice
 {
     int note;
     int velocity;
-    Oscillator osc;
+    SineWave sineOsc;
+    SawtoothWave sawOsc;
     
     /**
      Resets the state of the voice instance.
@@ -32,7 +34,8 @@ struct Voice
         note = constants::noNoteValue;
         //velocity = 0;
         
-        osc.reset();
+        sineOsc.reset();
+        sawOsc.reset();
     }
     
     /**
@@ -40,7 +43,8 @@ struct Voice
      */
     float render()
     {
-        return osc.nextSample();
+//        return sineOsc.nextSample();
+        return sawOsc.nextSample();
     }
 };
 
