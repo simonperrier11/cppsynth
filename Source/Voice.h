@@ -12,6 +12,7 @@
 #include "Constants.h"
 #include "SineWave.h"
 #include "SawtoothWave.h"
+#include "Blit.h"
 
 // LRN we can use a struct instead of a class when we don't need private/protected
 //  and other inheritance shenanigans (class defaults to private, struct to public)
@@ -24,6 +25,7 @@ struct Voice
     int note;
     int velocity;
     float saw;
+    Blit blit;
     SineWave sineOsc;
     SawtoothWave sawOsc;
     
@@ -37,6 +39,7 @@ struct Voice
         saw = 0.0f;
         sineOsc.reset();
         sawOsc.reset();
+        blit.reset();
     }
     
     /**
@@ -44,8 +47,14 @@ struct Voice
      */
     float render()
     {
+//        // Sine
 //        return sineOsc.nextSample();
-        float sample = sawOsc.nextSample();
+//        
+//        // Saw (old)
+//        return sawOsc.nextSample();
+        
+        // Saw (new)
+        float sample = blit.nextSample();
         saw = saw * 0.997f + sample;
         return saw;
     }

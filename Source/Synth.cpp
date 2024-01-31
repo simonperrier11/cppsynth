@@ -107,6 +107,7 @@ void Synth::noteOn(int note, int velocity)
     // N = (note - 69) to get the number of semitones difference with 440Hz A (MIDI #69)
     float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
     
+    // Sine
     voice.sineOsc.amplitude = (velocity / 127.0f) * 0.5f;
 //    voice.osc.freq = freq;
 //    voice.osc.sampleRate = sampleRate;
@@ -114,12 +115,17 @@ void Synth::noteOn(int note, int velocity)
     voice.sineOsc.increment = freq / sampleRate;
     voice.sineOsc.reset();
     
+    // Saw (old)
     voice.sawOsc.amplitude = (velocity / 127.0f) * 0.5f;
-    voice.sawOsc.period = sampleRate / freq;
-//    voice.sawOsc.increment = freq / sampleRate;
-//    voice.sawOsc.freq = freq;
-//    voice.sawOsc.sampleRate = sampleRate;
+    voice.sawOsc.increment = freq / sampleRate;
+    voice.sawOsc.freq = freq;
+    voice.sawOsc.sampleRate = sampleRate;
     voice.sawOsc.reset();
+    
+    // Saw (new)
+    voice.blit.amplitude = (velocity / 127.0f) * 0.5f;
+    voice.blit.period = sampleRate / freq;
+    voice.blit.reset();
 }
 
 void Synth::noteOff(int note, int velocity)
