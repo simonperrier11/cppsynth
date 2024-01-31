@@ -102,6 +102,9 @@ void Synth::noteOn(int note, int velocity)
     //voice.velocity = velocity;
     
     // Convert MIDI note to frequency
+    // The formula is, with base frequency 440Hz : frequency = 440 × 2^(N/12)
+    // eg.: 400 x 2^(-1/12) is one semitone down from A, 400 x 2^(2/12) is a tone up from A
+    // N = (note - 69) to get the number of semitones difference with 440Hz A (MIDI #69)
     float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
     
     voice.sineOsc.amplitude = (velocity / 127.0f) * 0.5f;
