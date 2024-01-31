@@ -115,9 +115,10 @@ void Synth::noteOn(int note, int velocity)
     voice.sineOsc.reset();
     
     voice.sawOsc.amplitude = (velocity / 127.0f) * 0.5f;
-    voice.sawOsc.increment = freq / sampleRate;
-    voice.sawOsc.freq = freq;
-    voice.sawOsc.sampleRate = sampleRate;
+    voice.sawOsc.period = sampleRate / freq;
+//    voice.sawOsc.increment = freq / sampleRate;
+//    voice.sawOsc.freq = freq;
+//    voice.sawOsc.sampleRate = sampleRate;
     voice.sawOsc.reset();
 }
 

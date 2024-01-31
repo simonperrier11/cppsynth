@@ -23,6 +23,7 @@ struct Voice
 {
     int note;
     int velocity;
+    float saw;
     SineWave sineOsc;
     SawtoothWave sawOsc;
     
@@ -33,7 +34,7 @@ struct Voice
     {
         note = constants::noNoteValue;
         //velocity = 0;
-        
+        saw = 0.0f;
         sineOsc.reset();
         sawOsc.reset();
     }
@@ -44,7 +45,9 @@ struct Voice
     float render()
     {
 //        return sineOsc.nextSample();
-        return sawOsc.nextSample();
+        float sample = sawOsc.nextSample();
+        saw = saw * 0.997f + sample;
+        return saw;
     }
 };
 
