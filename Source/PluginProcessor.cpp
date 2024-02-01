@@ -265,7 +265,10 @@ bool CppsynthAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* CppsynthAudioProcessor::createEditor()
 {
-    return new CppsynthAudioProcessorEditor (*this);
+    // By referencing this (pluginprocessor), the GUI is automatically made using the layout
+    auto editor = new juce::GenericAudioProcessorEditor(*this);
+    editor->setSize(500, 800);
+    return editor;
 }
 
 //==============================================================================
@@ -292,6 +295,17 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::createParameterLayout()
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
+    
+    // LRN make_unique<T> constructs object of type T and wraps it in a unique_ptr
+    // LRN a unique_ptr is a smart pointer that retains sole ownership of an object through a pointer and destroys that object when the unique_ptr goes out of scope (the AudioParameterChoice is then owned by the ParameterLayout instance)
+    // LRN AudioParameterChoice has an ID, a label, choices and idx for default
+    // Poly/Mono mode selection
+    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::polyMode, "Polyphony", juce::StringArray { "Mono", "Poly" }, 1));
+    
+    // LRN AudioParameterFloat has an ID, a label, a range, a default value, and an attribute object that describes the label for the units
+    // LRN juce::NormalisableRange<float> maps a range from 0.0 to 1.0
+    // OSC tune in semitones
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscTune, "OSC Tune", juce::NormalisableRange<float>(-24.0f, 24.0f, 1.0f), -12.0f, juce::AudioParameterFloatAttributes().withLabel("semi")));
     
     // TODO
     
