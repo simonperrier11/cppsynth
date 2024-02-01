@@ -294,6 +294,17 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 
 juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::createParameterLayout()
 {
+    // LRN lambda definition : auto foo = [](T bar, ...)
+    // LRN int without name is unnamed parameter (not actually used in function but might be required to be present by interface, stuff like that...)
+    // Lambda function to return an OSC mix % from a value
+    auto oscMixStringFromValue = [](float value, int)
+    {
+        char s[16] = {0};
+        // Print mix ratio of OSC1:OSC2
+        snprintf(s, 16, "%4.0f:%2.0f", 100.0 - 0.5f * value, 0.5f * value);
+        return juce::String(s);
+    };
+
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     
     // LRN make_unique<T> constructs object of type T and wraps it in a unique_ptr
@@ -305,7 +316,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     // LRN AudioParameterFloat has an ID, a label, a range, a default value, and an attribute object that describes the label for the units
     // LRN juce::NormalisableRange<float> maps a range from 0.0 to 1.0
     // OSC tune in semitones
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscTune, "OSC Tune", juce::NormalisableRange<float>(-24.0f, 24.0f, 1.0f), -12.0f, juce::AudioParameterFloatAttributes().withLabel("semi")));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscTune, "OSC1 Tune", juce::NormalisableRange<float>(-24.0f, 24.0f, 1.0f), -12.0f, juce::AudioParameterFloatAttributes().withLabel("semi")));
+    
+    // LRN NormalisableRange can have a skew (4th param) (see doc) and we can say if it happens at center (5th param)
+    // OSC fine tuning in cents
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscFine, "OSC1 Finetune", juce::NormalisableRange<float>(-50.0f, 50.0f, 0.1f, 0.3f, true), 0.0f, juce::AudioParameterFloatAttributes().withLabel("cent")));
+    
+    // OSC Mix
+    // Transform value to String for display at 5th parameter
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscMix, "OSC Mix", juce::NormalisableRange<float>(0.0f, 100.f), 0.0f, juce::AudioParameterFloatAttributes().withLabel("%").withStringFromValueFunction(oscMixStringFromValue)));
     
     // TODO
     
