@@ -289,3 +289,11 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new CppsynthAudioProcessor();
 }
 
+juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::createParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+    
+    // TODO
+    
+    return layout;
+}
