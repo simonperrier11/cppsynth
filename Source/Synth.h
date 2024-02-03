@@ -23,6 +23,8 @@
 class Synth
 {
 public:
+    float noiseMix;
+    
     Synth();
     
     /**

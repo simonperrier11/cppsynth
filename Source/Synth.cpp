@@ -42,7 +42,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
     // For all the samples we need to render (sampleCount)...
     for (int sample = 0; sample < sampleCount; ++sample) {
         // Get next noise value
-        float noise = noiseGen.nextValue();
+        float noise = noiseGen.nextValue() * noiseMix;
         float output = 0.0f;
         
         if (voice.note > 0) {
@@ -50,7 +50,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
             // 6dB reduction (* 0.5), then put in output
 //            output = noise * (voice.velocity / 127.0f) * 0.5f;
             
-            output = voice.render();
+            output = voice.render() + noise;
         }
         
         // Write value in buffers
