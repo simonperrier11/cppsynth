@@ -52,7 +52,7 @@ namespace ParameterID
  Represents the core processor of the plugin. The CppsynthAudioProcessor class extends the juce::AudioProcessor,
  which contains all audio processing classes and functions.
 */
-class CppsynthAudioProcessor : public juce::AudioProcessor
+class CppsynthAudioProcessor : public juce::AudioProcessor, private juce::ValueTree::Listener
 {
 public:
     // LRN {} after declaration does value initialization (call to constructor here)
@@ -136,6 +136,9 @@ private:
     juce::AudioParameterFloat* tuningParam;
     juce::AudioParameterFloat* outputLevelParam;
     juce::AudioParameterChoice* polyModeParam;
+    
+    // Atomic (thread-safe) flag to signal a parameter change
+    std::atomic<bool> parametersChanged { false };
 
     /**
      Instanciate all audio parameters objects.
@@ -158,6 +161,16 @@ private:
      Renders the audio in buffer
      */
     void render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset);
+    
+    /**
+     Listener function, called when a parameter is changed from a ValueTree.
+     */
+    void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) override;
+    
+    /**
+     Function where the calculations are done after a parameter change.
+     */
+    void update();
     
     //==============================================================================
     // LRN Disable copy constructor (constructor that takes reference to other object of

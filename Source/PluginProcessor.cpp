@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "Utils.h"
 
 //==============================================================================
 // LRN the syntax "constructor() : member1(value1), member2(value2), ..." is
@@ -26,11 +27,43 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
                        )
 #endif
 {
+    // Assign each identified parameter in the APVTS to a variable
+    castJuceParameter(apvts, ParameterID::oscMix, oscMixParam);
+    castJuceParameter(apvts, ParameterID::oscTune, oscTuneParam);
+    castJuceParameter(apvts, ParameterID::oscFine, oscFineParam);
+    castJuceParameter(apvts, ParameterID::glideMode, glideModeParam);
+    castJuceParameter(apvts, ParameterID::glideRate, glideRateParam);
+    castJuceParameter(apvts, ParameterID::glideBend, glideBendParam);
+    castJuceParameter(apvts, ParameterID::filterFreq, filterFreqParam);
+    castJuceParameter(apvts, ParameterID::filterReso, filterResoParam);
+    castJuceParameter(apvts, ParameterID::filterEnv, filterEnvParam);
+    castJuceParameter(apvts, ParameterID::filterLFO, filterLFOParam);
+    castJuceParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
+    castJuceParameter(apvts, ParameterID::filterAttack, filterAttackParam);
+    castJuceParameter(apvts, ParameterID::filterDecay, filterDecayParam);
+    castJuceParameter(apvts, ParameterID::filterSustain, filterSustainParam);
+    castJuceParameter(apvts, ParameterID::filterRelease, filterReleaseParam);
+    castJuceParameter(apvts, ParameterID::envAttack, envAttackParam);
+    castJuceParameter(apvts, ParameterID::envDecay, envDecayParam);
+    castJuceParameter(apvts, ParameterID::envSustain, envSustainParam);
+    castJuceParameter(apvts, ParameterID::envRelease, envReleaseParam);
+    castJuceParameter(apvts, ParameterID::lfoRate, lfoRateParam);
+    castJuceParameter(apvts, ParameterID::vibrato, vibratoParam);
+    castJuceParameter(apvts, ParameterID::noise, noiseParam);
+    castJuceParameter(apvts, ParameterID::octave, octaveParam);
+    castJuceParameter(apvts, ParameterID::tuning, tuningParam);
+    castJuceParameter(apvts, ParameterID::outputLevel, outputLevelParam);
+    castJuceParameter(apvts, ParameterID::polyMode, polyModeParam);
+    
+    // Add listener for parameter changes
+    // TODO maybe add listener for specific parameter changes
+    apvts.state.addListener(this);
 }
 
 // LRN ~ before constructor name is destructor
 CppsynthAudioProcessor::~CppsynthAudioProcessor()
 {
+    apvts.state.removeListener(this);
 }
 
 //==============================================================================
@@ -100,6 +133,7 @@ void CppsynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
 {
     // Allocate memory needed for Synth, then reset
     synth.allocateResources(sampleRate, samplesPerBlock);
+    parametersChanged.store(true); // force update() to be executed
     reset();
 }
 
@@ -159,30 +193,19 @@ void CppsynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
+    // In case we have more outputs than inputs, clear any empty output channels
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
+    // Atomically check if parametersChanged is equal to expected, then set back to false
+    // If DAW is in "offline mode" we always update
+    bool expected = true;
+    if (isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
+        update(); // Update synth if any changes
+    }
+    
     // Split buffer in segments by MIDI events, and process them
     splitBufferByEvents(buffer, midiMessages);
-    
-//    // This is the place where you'd normally do the guts of your plugin's
-//    // audio processing...
-//    // Make sure to reset the state if your inner loop is processing
-//    // the samples and the outer loop is handling the channels.
-//    // Alternatively, you can process the samples with the channels
-//    // interleaved by keeping the same state.
-//    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-//    {
-//        auto* channelData = buffer.getWritePointer (channel);
-//
-//        // ..do something to the data...
-//    }
 }
 
 void CppsynthAudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -274,15 +297,19 @@ juce::AudioProcessorEditor* CppsynthAudioProcessor::createEditor()
 //==============================================================================
 void CppsynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    // Save parameters as XML to memory block
+    copyXmlToBinary(*apvts.copyState().createXml(), destData);
 }
 
 void CppsynthAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    // Restore parameters
+    std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
+    
+    if (xml.get() != nullptr && xml->hasTagName(apvts.state.getType())) {
+        apvts.replaceState(juce::ValueTree::fromXml(*xml));
+        parametersChanged.store(true);
+    }
 }
 
 //==============================================================================
@@ -536,4 +563,18 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            juce::AudioParameterFloatAttributes().withLabel("dB")));
     
     return layout;
+}
+
+void CppsynthAudioProcessor::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&)
+{
+    // DBG("parameter changed");
+    parametersChanged.store(true);
+}
+
+void CppsynthAudioProcessor::update()
+{
+    // TODO add all calculations here when updating synth
+    float noiseMix = noiseParam->get() / 100.0f;
+    noiseMix *= noiseMix;
+    synth.noiseMix = noiseMix * 0.06f;
 }
