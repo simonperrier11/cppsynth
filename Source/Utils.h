@@ -54,3 +54,13 @@ inline void loudnessProtectBuffer(float* buffer, int sampleCount)
         }
     }
 }
+
+/**
+ Utility function to grab a parameter from the APVTS, cast it to a certain type and assign it to a pointer variable of this type
+ */
+template<typename T>
+inline static void castJuceParameter(juce::AudioProcessorValueTreeState& apvts, const juce::ParameterID& id, T& destination)
+{
+    destination = dynamic_cast<T>(apvts.getParameter(id.getParamID()));
+    jassert(destination);  // parameter does not exist or wrong type
+}
