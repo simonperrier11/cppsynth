@@ -295,8 +295,9 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::createParameterLayout()
 {
     // LRN lambda definition : auto foo = [](T bar, ...)
-    // LRN int without name is unnamed parameter (not actually used in function but might be required to be present by interface, stuff like that...)
-    // Lambda function to return an OSC mix % from a value
+    // LRN int without name is unnamed parameter (not actually used in function but might be required 
+    //  to be present by interface, stuff like that...)
+    // Lambda to return an OSC mix % from a value
     auto oscMixStringFromValue = [](float value, int)
     {
         char s[16] = {0};
@@ -304,29 +305,235 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
         snprintf(s, 16, "%4.0f:%2.0f", 100.0 - 0.5f * value, 0.5f * value);
         return juce::String(s);
     };
+    
+    // Lambda to filter values under a treshold and return result as a String
+    auto filterVelocityStringFromValue = [](float value, int)
+    {
+        if (value < -90.0f)
+            return juce::String("OFF");
+        else
+            return juce::String(value);
+    };
+    
+    // Lambda to transform LFO rate to formatted String
+    auto lfoRateStringFromValue = [](float value, int)
+    {
+        // Mapping for an exponential curve (finer control on values < 0.5)
+        float lfoHz = std::exp(7.0f * value - 4.0f);
+        return juce::String(lfoHz, 3);
+    };
+    
+    // Lambda to format vibrato/PWM value to String
+    auto vibratoStringFromValue = [](float value, int)
+    {
+        // Vibrato and PWN are mutually exclusive
+        // value under 0 is PWM amount, over 0 is vibrato amount
+        if (value < 0.0f)
+            return "PWM " + juce::String(-value, 1);
+        else
+            return juce::String(value, 1);
+    };
 
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     
     // LRN make_unique<T> constructs object of type T and wraps it in a unique_ptr
-    // LRN a unique_ptr is a smart pointer that retains sole ownership of an object through a pointer and destroys that object when the unique_ptr goes out of scope (the AudioParameterChoice is then owned by the ParameterLayout instance)
+    // LRN a unique_ptr is a smart pointer that retains sole ownership of an object through a pointer and
+    //  destroys that object when the unique_ptr goes out of scope (the AudioParameterChoice is then owned by
+    //  the ParameterLayout instance)
     // LRN AudioParameterChoice has an ID, a label, choices and idx for default
+    // LRN AudioParameterFloat/Choice store values in atomic variables, so they are thread-safe
     // Poly/Mono mode selection
-    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::polyMode, "Polyphony", juce::StringArray { "Mono", "Poly" }, 1));
+    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::polyMode, 
+                                                            "Polyphony",
+                                                            juce::StringArray { "Mono", "Poly" },
+                                                            1));
     
-    // LRN AudioParameterFloat has an ID, a label, a range, a default value, and an attribute object that describes the label for the units
+    // LRN AudioParameterFloat has an ID, a label, a range, a default value, and an attribute object that
+    //  describes the label for the units
     // LRN juce::NormalisableRange<float> maps a range from 0.0 to 1.0
     // OSC tune in semitones
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscTune, "OSC1 Tune", juce::NormalisableRange<float>(-24.0f, 24.0f, 1.0f), -12.0f, juce::AudioParameterFloatAttributes().withLabel("semi")));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscTune, 
+                                                           "OSC1 Tune",
+                                                           juce::NormalisableRange<float>(-24.0f, 24.0f, 1.0f),
+                                                           -12.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("semi")));
     
-    // LRN NormalisableRange can have a skew (4th param) (see doc) and we can say if it happens at center (5th param)
+    // LRN NormalisableRange can have a skew (4th param) (see doc) and we can say if it happens 
+    //  at center (5th param)
     // OSC fine tuning in cents
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscFine, "OSC1 Finetune", juce::NormalisableRange<float>(-50.0f, 50.0f, 0.1f, 0.3f, true), 0.0f, juce::AudioParameterFloatAttributes().withLabel("cent")));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscFine, 
+                                                           "OSC1 Finetune",
+                                                           juce::NormalisableRange<float>(-50.0f, 50.0f, 0.1f, 0.3f, true),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("cent")));
     
     // OSC Mix
     // Transform value to String for display at 5th parameter
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscMix, "OSC Mix", juce::NormalisableRange<float>(0.0f, 100.f), 0.0f, juce::AudioParameterFloatAttributes().withLabel("%").withStringFromValueFunction(oscMixStringFromValue)));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscMix, 
+                                                           "OSC Mix",
+                                                           juce::NormalisableRange<float>(0.0f, 100.f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes()
+                                                            .withLabel("%")
+                                                            .withStringFromValueFunction(oscMixStringFromValue)));
     
-    // TODO
+    // Glide Mode
+    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::glideMode, 
+                                                            "Glide Mode",
+                                                            juce::StringArray { "Off", "Legato", "Always" },
+                                                            0));
+
+    // Glide Rate
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideRate, 
+                                                           "Glide Rate",
+                                                           juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
+                                                           35.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Glide Bend (add additionnal glide to notes played)
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideBend, 
+                                                           "Glide Bend",
+                                                           juce::NormalisableRange<float>(-36.0f, 36.0f, 0.01f, 0.4f, true),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("semi")));
+
+    // Filter cutoff frequency
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterFreq,
+                                                           "Filter Freq",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f),
+                                                           100.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter resonance
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterReso,
+                                                           "Filter Reso",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           15.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter enveloppe amount
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterEnv,
+                                                           "Filter Env",
+                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
+                                                           50.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter LFO amount
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterLFO,
+                                                           "Filter LFO",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+    
+    // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
+                                                           "Velocity",
+                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes()
+                                                            .withLabel("%")
+                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
+
+    // Filter attack
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterAttack,
+                                                           "Filter Attack",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter decay
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterDecay,
+                                                           "Filter Decay",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           30.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter sustain
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterSustain,
+                                                           "Filter Sustain",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter release
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterRelease,
+                                                           "Filter Release",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           25.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Envelope attack
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envAttack,
+                                                           "Env Attack",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Envelope decay
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envDecay,
+                                                           "Env Decay",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           50.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Envelope sustain
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envSustain,
+                                                           "Env Sustain",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           100.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Envelope release
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envRelease,
+                                                           "Env Release",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           30.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // LFO rate
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lfoRate,
+                                                           "LFO Rate",
+                                                           juce::NormalisableRange<float>(),
+                                                           0.81f,
+                                                           juce::AudioParameterFloatAttributes()
+                                                            .withLabel("Hz")
+                                                            .withStringFromValueFunction(lfoRateStringFromValue)));
+
+    // Vibrato or PWM amount
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
+                                                           "Vibrato/PWM",
+                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes()
+                                                            .withLabel("%")
+                                                            .withStringFromValueFunction(vibratoStringFromValue)));
+
+    // Noise mix
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::noise,
+                                                           "Noise",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Master tune
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::octave,
+                                                           "Octave",
+                                                           juce::NormalisableRange<float>(-2.0f, 2.0f, 1.0f),
+                                                           0.0f));
+
+    // Master finetune
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::tuning,
+                                                           "Tuning",
+                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("cent")));
+
+    // Master volume
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::outputLevel,
+                                                           "Output Level",
+                                                           juce::NormalisableRange<float>(-24.0f, 6.0f, 0.1f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("dB")));
     
     return layout;
 }
