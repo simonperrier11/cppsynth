@@ -45,12 +45,13 @@ void Synth::render(float** outputBuffers, int sampleCount)
         float noise = noiseGen.nextValue() * noiseMix;
         float output = 0.0f;
         
-        if (voice.note > 0) {
-            // Multiply noise by velocity (which is divided by 127),
-            // 6dB reduction (* 0.5), then put in output
+        // Only render if envelope is active
+        if (voice.env.isActive()) {
+//            // Multiply noise by velocity (which is divided by 127),
+//            // 6dB reduction (* 0.5), then put in output
 //            output = noise * (voice.velocity / 127.0f) * 0.5f;
             
-            output = voice.render() + noise;
+            output = voice.render(noise);
         }
         
         // Write value in buffers
@@ -60,9 +61,14 @@ void Synth::render(float** outputBuffers, int sampleCount)
         }
     }
     
-    // TODO put this back!
-//    loudnessProtectBuffer(outputBufferLeft, sampleCount);
-//    loudnessProtectBuffer(outputBufferRight, sampleCount);
+    // Reset envelope if done
+    if (!voice.env.isActive()) {
+        voice.env.reset();
+    }
+    
+    // TODO for dev
+    loudnessProtectBuffer(outputBufferLeft, sampleCount);
+    loudnessProtectBuffer(outputBufferRight, sampleCount);
 }
 
 void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
@@ -126,13 +132,22 @@ void Synth::noteOn(int note, int velocity)
     voice.blit.amplitude = (velocity / 127.0f) * 0.5f;
     voice.blit.period = sampleRate / freq;
     voice.blit.reset();
+    
+    // LRN dereference voice.env to access it just by env variable
+    // Envelope settings + trigger envelope
+    Envelope& env = voice.env;
+    env.attackMultiplier = envAttack;
+    env.decayMultiplier = envDecay;
+    env.sustainLevel = envSustain;
+    env.releaseMultiplier = envRelease;
+    env.attack();
 }
 
 void Synth::noteOff(int note, int velocity)
 {
     // TODO if noteOff velocity is to be implemented, use here
     if (voice.note == note) {
-        voice.note = constants::noNoteValue;
+        voice.release();
         //voice.velocity = 0;
     }
 }

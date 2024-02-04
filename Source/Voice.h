@@ -13,6 +13,7 @@
 #include "SineWave.h"
 #include "SawtoothWave.h"
 #include "Blit.h"
+#include "Envelope.h"
 
 // LRN we can use a struct instead of a class when we don't need private/protected
 //  and other inheritance shenanigans (class defaults to private, struct to public)
@@ -28,9 +29,10 @@ struct Voice
     Blit blit;
     SineWave sineOsc;
     SawtoothWave sawOsc;
+    Envelope env;
     
     /**
-     Resets the state of the voice instance.
+     Resets the state of the voice instance and its components.
      */
     void reset()
     {
@@ -40,12 +42,21 @@ struct Voice
         sineOsc.reset();
         sawOsc.reset();
         blit.reset();
+        env.reset();
     }
     
     /**
-      Renders the next value of the oscillator.
+     Triggers the release phase of the envelope.
      */
-    float render()
+    void release()
+    {
+        env.release();
+    }
+    
+    /**
+      Renders the next value of the oscillator. This function also takes noise as input.
+     */
+    float render(float input)
     {
 //        // Sine
 //        return sineOsc.nextSample();
@@ -56,7 +67,13 @@ struct Voice
         // Saw (new)
         float sample = blit.nextSample();
         saw = saw * 0.997f + sample;
-        return saw;
+        
+        float output = saw + input;
+        
+        float envelope = env.nextValue();
+        
+        // return envelope;
+        return output * envelope;
     }
 };
 

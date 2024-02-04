@@ -24,6 +24,10 @@ class Synth
 {
 public:
     float noiseMix;
+    float envAttack;
+    float envDecay;
+    float envSustain;
+    float envRelease;
     
     Synth();
     

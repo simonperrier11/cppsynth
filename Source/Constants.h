@@ -26,4 +26,12 @@ namespace constants
     inline constexpr float pi { 3.1415926535897932f };
     // Approximation of pi / 4
     inline constexpr float piOverFour { 0.7853981633974483f };
+
+    // Treshold under which amplitude level should be considered silent
+    inline constexpr float silenceTreshold { 0.0001f };
+
+    // Various target levels for envelopes
+    inline constexpr float envAttackTarget { 2.0f };
+    inline constexpr float envSustainTarget { 1.0f };
+    inline constexpr float envReleaseTarget { 0.0f };
 }

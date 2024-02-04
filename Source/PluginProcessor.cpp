@@ -573,7 +573,35 @@ void CppsynthAudioProcessor::valueTreePropertyChanged(juce::ValueTree&, const ju
 
 void CppsynthAudioProcessor::update()
 {
-    // TODO add all calculations here when updating synth
+    float sampleRate = float(getSampleRate());
+    float inverseSampleRate = 1.0f / sampleRate;
+    
+    // TODO not sure about this approach... Maybe implement env times directly in ms (p. 178)
+    synth.envAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envAttackParam->get()));
+    synth.envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envDecayParam->get()));
+    synth.envSustain = envSustainParam->get() / 100.0f;
+    
+    float envRelease = envReleaseParam->get();
+    
+    if (envRelease < 1.0f) {
+        // Extra fast release to prevent pop
+        // Fade out over 32 samples since (0.75)^32 = 0.0001 = silenceTreshold
+        synth.envRelease = 0.75f;
+    }
+    else {
+        synth.envRelease = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envReleaseParam->get()));
+    }
+    
+//    float decayTimeSec = 5.0f;
+//    float decayTime = envDecayParam->get() / 100.0f * decayTimeSec;
+//    float decaySamples = sampleRate * decayTime;
+//    
+//    // We want to find the correct multiplier a that creates the decay for the desired time
+//    // The formula is : multiplier = exp(ln(silenceLevel) / (sampleRate * decayTime); the enveloppe will be at
+//    // y = silenceLevel at x = decaySamples
+//    synth.envDecay = std::exp(std::log(constants::silenceTreshold) / decaySamples);
+    
+    
     float noiseMix = noiseParam->get() / 100.0f;
     noiseMix *= noiseMix;
     synth.noiseMix = noiseMix * 0.06f;
