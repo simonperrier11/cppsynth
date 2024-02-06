@@ -26,10 +26,13 @@ struct Voice
     int note;
     int velocity;
     float saw;
-    Blit blit;
+    float period; // TODO the synth used in the book sets its pitch by its period,
+    // but I might want to change this
     SineWave sineOsc;
     SawtoothWave sawOsc;
     Envelope env;
+    Blit osc1;
+    Blit osc2;
     
     /**
      Resets the state of the voice instance and its components.
@@ -41,7 +44,8 @@ struct Voice
         saw = 0.0f;
         sineOsc.reset();
         sawOsc.reset();
-        blit.reset();
+        osc1.reset();
+        osc2.reset();
         env.reset();
     }
     
@@ -65,11 +69,13 @@ struct Voice
 //        return sawOsc.nextSample();
         
         // Saw (new)
-        float sample = blit.nextSample();
-        saw = saw * 0.997f + sample;
+        float sample1 = osc1.nextSample();
+        float sample2 = osc2.nextSample();
+        
+        // BLIT attenuation for sawtooth wave
+        saw = saw * 0.997f + (sample1 - sample2);
         
         float output = saw + input;
-        
         float envelope = env.nextValue();
         
         // return envelope;

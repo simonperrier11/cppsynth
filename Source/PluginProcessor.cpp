@@ -380,7 +380,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     // LRN juce::NormalisableRange<float> maps a range from 0.0 to 1.0
     // OSC tune in semitones
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscTune, 
-                                                           "OSC1 Tune",
+                                                           "OSC2 Semitones",
                                                            juce::NormalisableRange<float>(-24.0f, 24.0f, 1.0f),
                                                            -12.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("semi")));
@@ -389,7 +389,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     //  at center (5th param)
     // OSC fine tuning in cents
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscFine, 
-                                                           "OSC1 Finetune",
+                                                           "OSC2 Tune",
                                                            juce::NormalisableRange<float>(-50.0f, 50.0f, 0.1f, 0.3f, true),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("cent")));
@@ -397,7 +397,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     // OSC Mix
     // Transform value to String for display at 5th parameter
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscMix, 
-                                                           "OSC Mix",
+                                                           "OSC1&2 Mix",
                                                            juce::NormalisableRange<float>(0.0f, 100.f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes()
@@ -537,7 +537,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 
     // Noise mix
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::noise,
-                                                           "Noise",
+                                                           "Noise Mix",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
@@ -573,6 +573,7 @@ void CppsynthAudioProcessor::valueTreePropertyChanged(juce::ValueTree&, const ju
 
 void CppsynthAudioProcessor::update()
 {
+    // TODO it would be more efficient to only update params that have changed
     float sampleRate = float(getSampleRate());
     float inverseSampleRate = 1.0f / sampleRate;
     
@@ -581,8 +582,8 @@ void CppsynthAudioProcessor::update()
     synth.envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envDecayParam->get()));
     synth.envSustain = envSustainParam->get() / 100.0f;
     
+    // Enveloppe release
     float envRelease = envReleaseParam->get();
-    
     if (envRelease < 1.0f) {
         // Extra fast release to prevent pop
         // Fade out over 32 samples since (0.75)^32 = 0.0001 = silenceTreshold
@@ -601,8 +602,24 @@ void CppsynthAudioProcessor::update()
 //    // y = silenceLevel at x = decaySamples
 //    synth.envDecay = std::exp(std::log(constants::silenceTreshold) / decaySamples);
     
-    
+    // Noise mix
     float noiseMix = noiseParam->get() / 100.0f;
     noiseMix *= noiseMix;
     synth.noiseMix = noiseMix * 0.06f;
+    
+    // OSC2 mix
+    synth.oscMix = oscMixParam->get() / 100.0f;
+    
+    // OSC2 tuning
+    float semi = oscTuneParam->get();
+    float cent = oscFineParam->get();
+    // To calculate pitch of any note with starting pitch, we use pitch * 2^(N/12)
+    // where N is the number of fractionnal semitones
+    // This is the 2^(N/12) part
+    synth.osc2detune = std::pow(2.0f, (-semi - 0.01f * cent) / 12.0f);
+    
+    // Tuning
+    float octave = octaveParam->get();
+    float tuning = tuningParam->get();
+    synth.tune = octave * 12.0f + tuning / 100.0f;
 }

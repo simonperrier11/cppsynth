@@ -39,6 +39,13 @@ void Synth::render(float** outputBuffers, int sampleCount)
     float* outputBufferLeft = outputBuffers[0];
     float* outputBufferRight = outputBuffers[1];
 
+    // Update some of the synth's params at each render to catch any change
+    // to any voices that are currently playing
+    voice.osc1.period = voice.period;
+    voice.osc2.period = voice.osc1.period * osc2detune;
+    voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
+    // TODO general tune and finetune should also always affect playing notes
+    
     // For all the samples we need to render (sampleCount)...
     for (int sample = 0; sample < sampleCount; ++sample) {
         // Get next noise value
@@ -111,7 +118,8 @@ void Synth::noteOn(int note, int velocity)
     // The formula is, with base frequency 440Hz : frequency = 440 × 2^(N/12)
     // eg.: 400 x 2^(-1/12) is one semitone down from A, 400 x 2^(2/12) is a tone up from A
     // N = (note - 69) to get the number of semitones difference with 440Hz A (MIDI #69)
-    float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
+    // Also add tuning modifier
+    float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
     
     // Sine
     voice.sineOsc.amplitude = (velocity / 127.0f) * 0.5f;
@@ -128,10 +136,12 @@ void Synth::noteOn(int note, int velocity)
     voice.sawOsc.sampleRate = sampleRate;
     voice.sawOsc.reset();
     
-    // Saw (new)
-    voice.blit.amplitude = (velocity / 127.0f) * 0.5f;
-    voice.blit.period = sampleRate / freq;
-    voice.blit.reset();
+    // Saw oscillators (new)
+    voice.period = sampleRate / freq;
+    voice.osc1.amplitude = (velocity / 127.0f) * 0.5f;
+    // TODO reset on new note could be a param
+    voice.osc1.reset();
+    voice.osc2.reset();
     
     // LRN dereference voice.env to access it just by env variable
     // Envelope settings + trigger envelope
@@ -141,6 +151,7 @@ void Synth::noteOn(int note, int velocity)
     env.sustainLevel = envSustain;
     env.releaseMultiplier = envRelease;
     env.attack();
+    
 }
 
 void Synth::noteOff(int note, int velocity)
