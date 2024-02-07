@@ -26,8 +26,7 @@ struct Voice
     int note;
     int velocity;
     float saw;
-    float period; // TODO the synth used in the book sets its pitch by its period,
-    // but I might want to change this
+    float period; // TODO: the synth used in the book sets its pitch by its period, but I might want to change this
     SineWave sineOsc;
     SawtoothWave sawOsc;
     Envelope env;

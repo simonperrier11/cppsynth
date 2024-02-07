@@ -10,10 +10,9 @@
 
 #pragma once
 
-// TODO NoiseGenerator should be a parent class (interface?) and have
-// other classes inheriting from it : white, pink etc.
+// TODO: NoiseGenerator should be a parent class and have white/pink noise children
 
-// TODO replace pseudo-rand this with JUCE built-in Random for white noise
+// TODO: replace pseudo-rand this with JUCE built-in Random for white noise
 class NoiseGenerator
 {
 public:

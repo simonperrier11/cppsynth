@@ -36,7 +36,7 @@ public:
         dc = 0.0f;
     }
     
-    // TODO change approach
+    // TODO: change approach
     float nextSample() override
     {
         float output = 0.0f;
