@@ -56,7 +56,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::polyMode, polyModeParam);
     
     // Add listener for parameter changes
-    // TODO maybe add listener for specific parameter changes
+    // TODO: maybe add listener for specific parameter changes
     apvts.state.addListener(this);
 }
 
@@ -573,11 +573,11 @@ void CppsynthAudioProcessor::valueTreePropertyChanged(juce::ValueTree&, const ju
 
 void CppsynthAudioProcessor::update()
 {
-    // TODO it would be more efficient to only update params that have changed
+    // TODO: it would be more efficient to only update params that have changed
     float sampleRate = float(getSampleRate());
     float inverseSampleRate = 1.0f / sampleRate;
     
-    // TODO not sure about this approach... Maybe implement env times directly in ms (p. 178)
+    // TODO: not sure about this approach... Maybe implement env times directly in ms (p. 178)
     synth.envAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envAttackParam->get()));
     synth.envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envDecayParam->get()));
     synth.envSustain = envSustainParam->get() / 100.0f;
@@ -621,5 +621,7 @@ void CppsynthAudioProcessor::update()
     // Tuning
     float octave = octaveParam->get();
     float tuning = tuningParam->get();
-    synth.tune = octave * 12.0f + tuning / 100.0f;
+    // TODO: book p. 186
+    float tuneInSemitones = -36.3763f - 12.0f * octave - tuning / 100.0f;
+    synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemitones);
 }

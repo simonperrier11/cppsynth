@@ -61,6 +61,7 @@ public:
     
 private:
     float sampleRate;
+    float pitchBend;
     Voice voice;
     NoiseGenerator noiseGen;
     
@@ -73,4 +74,9 @@ private:
      Handles the Note Off command.
      */
     void noteOff(int note, int velocity);
+    
+    /**
+     Calculates the period given a MIDI note.
+     */
+    float calcPeriod(int note) const;
 };

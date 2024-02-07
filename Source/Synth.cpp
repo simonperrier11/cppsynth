@@ -32,6 +32,7 @@ void Synth::reset()
 {
     voice.reset();
     noiseGen.reset();
+    pitchBend = 1.0f;
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -41,10 +42,10 @@ void Synth::render(float** outputBuffers, int sampleCount)
 
     // Update some of the synth's params at each render to catch any change
     // to any voices that are currently playing
-    voice.osc1.period = voice.period;
+    voice.osc1.period = voice.period * pitchBend;
     voice.osc2.period = voice.osc1.period * osc2detune;
     voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
-    // TODO general tune and finetune should also always affect playing notes
+    // TODO: general tune and finetune should also always affect playing notes
     
     // For all the samples we need to render (sampleCount)...
     for (int sample = 0; sample < sampleCount; ++sample) {
@@ -73,7 +74,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         voice.env.reset();
     }
     
-    // TODO for dev
+    // TODO: remove when done with dev, but add back when developing features!
     loudnessProtectBuffer(outputBufferLeft, sampleCount);
     loudnessProtectBuffer(outputBufferRight, sampleCount);
 }
@@ -106,6 +107,12 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
             }
             break;
         }
+        case 0xE0: {
+            // Range of pitch bend is 2 semitones up and down
+            // TODO: book p.189
+            pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192));
+            break;
+        }
     }
 }
 
@@ -119,27 +126,30 @@ void Synth::noteOn(int note, int velocity)
     // eg.: 400 x 2^(-1/12) is one semitone down from A, 400 x 2^(2/12) is a tone up from A
     // N = (note - 69) to get the number of semitones difference with 440Hz A (MIDI #69)
     // Also add tuning modifier
-    float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
+    // float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
     
-    // Sine
-    voice.sineOsc.amplitude = (velocity / 127.0f) * 0.5f;
+    
+//    // Sine
+//    voice.sineOsc.amplitude = (velocity / 127.0f) * 0.5f;
 //    voice.osc.freq = freq;
 //    voice.osc.sampleRate = sampleRate;
 //    voice.osc.phaseOffset = 0.0f;
-    voice.sineOsc.increment = freq / sampleRate;
-    voice.sineOsc.reset();
-    
-    // Saw (old)
-    voice.sawOsc.amplitude = (velocity / 127.0f) * 0.5f;
-    voice.sawOsc.increment = freq / sampleRate;
-    voice.sawOsc.freq = freq;
-    voice.sawOsc.sampleRate = sampleRate;
-    voice.sawOsc.reset();
+//    voice.sineOsc.increment = freq / sampleRate;
+//    voice.sineOsc.reset();
+//    
+//    // Saw (old)
+//    voice.sawOsc.amplitude = (velocity / 127.0f) * 0.5f;
+//    voice.sawOsc.increment = freq / sampleRate;
+//    voice.sawOsc.freq = freq;
+//    voice.sawOsc.sampleRate = sampleRate;
+//    voice.sawOsc.reset();
     
     // Saw oscillators (new)
-    voice.period = sampleRate / freq;
+    // voice.period = sampleRate / freq;
+    float period = calcPeriod(note);
+    voice.period = period;
     voice.osc1.amplitude = (velocity / 127.0f) * 0.5f;
-    // TODO reset on new note could be a param
+    // TODO: reset on new note could be a param
     voice.osc1.reset();
     voice.osc2.reset();
     
@@ -151,14 +161,24 @@ void Synth::noteOn(int note, int velocity)
     env.sustainLevel = envSustain;
     env.releaseMultiplier = envRelease;
     env.attack();
-    
 }
 
 void Synth::noteOff(int note, int velocity)
 {
-    // TODO if noteOff velocity is to be implemented, use here
+    // TODO: if noteOff velocity is to be implemented, use here
     if (voice.note == note) {
         voice.release();
         //voice.velocity = 0;
     }
+}
+
+float Synth::calcPeriod(int note) const
+{
+    // TODO: book p.186
+    float period = tune * std::exp(-0.05776226505f * float(note));
+    // Ensure that the period or detuned pitch of OSC2 is at least 6 samples long,
+    // else we double it. This is because the BLIT based oscillator may not work
+    // too well if the perdio is too small
+    while (period < 6.0f || (period * osc2detune) < 6.0f) { period += period; }
+    return period;
 }
