@@ -29,7 +29,7 @@ public:
      */
     inline bool isActive() const
     {
-        return level > constants::silenceTreshold;
+        return level > constants::SILENCE_TRESHOLD;
     }
     
     /**
@@ -37,7 +37,7 @@ public:
      */
     inline bool isInAttack() const
     {
-        return target >= constants::envAttackTarget;
+        return target >= constants::ENV_ATK_TARGET;
     }
     
     /**
@@ -48,8 +48,8 @@ public:
         // Give extra boost so that the initial envelope is always greater than silence
         // The += assignement enables legato-style playing
         //  (continue envelope instead of restarting it)
-        level += constants::silenceTreshold + constants::silenceTreshold;
-        target = constants::envAttackTarget;
+        level += constants::SILENCE_TRESHOLD + constants::SILENCE_TRESHOLD;
+        target = constants::ENV_ATK_TARGET;
         multiplier = attackMultiplier;
     }
     
@@ -66,7 +66,7 @@ public:
         
         // To know if we're in the attack stage, we'll consider a target of 2.0 instead of the
         //  sustain's 1.0; once we've reach the end of the attack stage, switch to decay stage
-        if (level + target > constants::envSustainTarget + constants::envAttackTarget) {
+        if (level + target > constants::ENV_SUS_TARGET + constants::ENV_ATK_TARGET) {
             multiplier = decayMultiplier;
             target = sustainLevel;
         }
@@ -80,7 +80,7 @@ public:
     void reset()
     {
         level = 0.0f;
-        target = constants::envReleaseTarget;
+        target = constants::ENV_REL_TARGET;
         multiplier = 0.0f;
     }
     
@@ -89,7 +89,7 @@ public:
      */
     void release()
     {
-        target = constants::envReleaseTarget;
+        target = constants::ENV_REL_TARGET;
         multiplier = releaseMultiplier;
     }
 private:

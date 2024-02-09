@@ -43,12 +43,12 @@ public:
         
         phase += increment;
         
-        if (phase <= constants::piOverFour) {
+        if (phase <= constants::PI_OVER_FOUR) {
             float halfPeriod = period / 2.0f;
             
             phaseMax = std::floor(0.5f + halfPeriod) - 0.5f;
             dc = 0.5f * amplitude / phaseMax;
-            phaseMax *= constants::pi;
+            phaseMax *= constants::PI;
             increment = phaseMax / halfPeriod;
             phase = -phase;
             

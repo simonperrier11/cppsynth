@@ -10,8 +10,6 @@
 
 #pragma once
 #include "Constants.h"
-#include "SineWave.h"
-#include "SawtoothWave.h"
 #include "Blit.h"
 #include "Envelope.h"
 
@@ -27,8 +25,6 @@ struct Voice
     int velocity;
     float saw;
     float period; // TODO: the synth used in the book sets its pitch by its period, but I might want to change this
-    SineWave sineOsc;
-    SawtoothWave sawOsc;
     Envelope env;
     Blit osc1;
     Blit osc2;
@@ -38,11 +34,9 @@ struct Voice
      */
     void reset()
     {
-        note = constants::noNoteValue;
+        note = constants::NO_NOTE_VALUE;
         //velocity = 0;
         saw = 0.0f;
-        sineOsc.reset();
-        sawOsc.reset();
         osc1.reset();
         osc2.reset();
         env.reset();
@@ -61,23 +55,19 @@ struct Voice
      */
     float render(float input)
     {
-//        // Sine
-//        return sineOsc.nextSample();
-//        
-//        // Saw (old)
-//        return sawOsc.nextSample();
-        
-        // Saw (new)
+        // Get next samples for both BLIT oscillators
         float sample1 = osc1.nextSample();
         float sample2 = osc2.nextSample();
         
-        // BLIT attenuation for sawtooth wave
+        // Substract osc2 from osc1, and multiply by saw with attenation
+        //  to create shape
         saw = saw * 0.997f + (sample1 - sample2);
         
+        // Mix with input (noise)
         float output = saw + input;
         float envelope = env.nextValue();
         
-        // return envelope;
+        // Apply enveloppe
         return output * envelope;
     }
 };
