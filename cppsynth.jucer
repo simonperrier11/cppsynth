@@ -9,8 +9,6 @@
     <GROUP id="{21F9D328-4824-2EC7-C8E4-F87A0662B99D}" name="Source">
       <FILE id="N1NCWE" name="Envelope.h" compile="0" resource="0" file="Source/Envelope.h"/>
       <FILE id="GXQGC1" name="Blit.h" compile="0" resource="0" file="Source/Blit.h"/>
-      <FILE id="FpHcuY" name="SawtoothWave.h" compile="0" resource="0" file="Source/SawtoothWave.h"/>
-      <FILE id="H6cs4o" name="SineWave.h" compile="0" resource="0" file="Source/SineWave.h"/>
       <FILE id="rYcIm2" name="Oscillator.h" compile="0" resource="0" file="Source/Oscillator.h"/>
       <FILE id="yFapBO" name="Utils.h" compile="0" resource="0" file="Source/Utils.h"/>
       <FILE id="I6Yynu" name="NoiseGenerator.h" compile="0" resource="0"
