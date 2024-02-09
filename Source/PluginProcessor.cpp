@@ -254,12 +254,6 @@ void CppsynthAudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t da
 {
     // Pass the MIDI msg to Synth
     synth.midiMessage(data0, data1, data2);
-
-//    // Debug code
-//    char s[16];
-//    // Write formatted output to sized buffer, instead of directly printing it
-//    snprintf(s, 16, "%02hhX %02hhX %02hhX", data0, data1, data2);
-//    DBG(s);
 }
 
 void CppsynthAudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
@@ -578,6 +572,8 @@ void CppsynthAudioProcessor::update()
     float inverseSampleRate = 1.0f / sampleRate;
     
     // TODO: not sure about this approach... Maybe implement env times directly in ms (p. 178)
+    // LRN -> is like ., except it dereferences a pointer first; foo.bar() calls method bar() on object foo,
+    //  foo->bar calls method bar on the object pointed to by pointer foo
     synth.envAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envAttackParam->get()));
     synth.envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envDecayParam->get()));
     synth.envSustain = envSustainParam->get() / 100.0f;
@@ -593,15 +589,6 @@ void CppsynthAudioProcessor::update()
         synth.envRelease = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envReleaseParam->get()));
     }
     
-//    float decayTimeSec = 5.0f;
-//    float decayTime = envDecayParam->get() / 100.0f * decayTimeSec;
-//    float decaySamples = sampleRate * decayTime;
-//    
-//    // We want to find the correct multiplier a that creates the decay for the desired time
-//    // The formula is : multiplier = exp(ln(silenceLevel) / (sampleRate * decayTime); the enveloppe will be at
-//    // y = silenceLevel at x = decaySamples
-//    synth.envDecay = std::exp(std::log(constants::silenceTreshold) / decaySamples);
-    
     // Noise mix
     float noiseMix = noiseParam->get() / 100.0f;
     noiseMix *= noiseMix;
@@ -616,6 +603,7 @@ void CppsynthAudioProcessor::update()
     // To calculate pitch of any note with starting pitch, we use pitch * 2^(N/12)
     // where N is the number of fractionnal semitones
     // This is the 2^(N/12) part
+    // TODO: book p. 183
     synth.osc2detune = std::pow(2.0f, (-semi - 0.01f * cent) / 12.0f);
     
     // Tuning
@@ -624,4 +612,7 @@ void CppsynthAudioProcessor::update()
     // TODO: book p. 186
     float tuneInSemitones = -36.3763f - 12.0f * octave - tuning / 100.0f;
     synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemitones);
+    
+    // Voices
+    synth.numVoices = (polyModeParam->getIndex() == 0 ? 1 : constants::MAX_VOICES);
 }

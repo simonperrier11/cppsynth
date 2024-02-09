@@ -30,7 +30,10 @@ void Synth::deallocateResources()
 
 void Synth::reset()
 {
-    voice.reset();
+    for (int v = 0; v < constants::MAX_VOICES; ++v) {
+        voices[v].reset();
+    }
+    
     noiseGen.reset();
     pitchBend = 1.0f;
 }
@@ -42,38 +45,58 @@ void Synth::render(float** outputBuffers, int sampleCount)
 
     // Update some of the synth's params at each render to catch any change
     // to any voices that are currently playing
-    voice.osc1.period = voice.period * pitchBend;
-    voice.osc2.period = voice.osc1.period * osc2detune;
-    voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
     // TODO: general tune and finetune should also always affect playing notes
-    
+
+    // Pitch and amplitude of OSC2
+    for (int v = 0; v < constants::MAX_VOICES; ++v) {
+        Voice& voice = voices[v];
+        
+        if (voice.env.isActive()) {
+            voice.osc1.period = voice.period * pitchBend;
+            voice.osc2.period = voice.osc1.period * osc2detune;
+            voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
+        }
+    }
+        
     // For all the samples we need to render (sampleCount)...
     for (int sample = 0; sample < sampleCount; ++sample) {
         // Get next noise value
-        float noise = noiseGen.nextValue() * noiseMix;
-        float output = 0.0f;
+        const float noise = noiseGen.nextValue() * noiseMix;
+        float outputLeft = 0.0f;
+        float outputRight = 0.0f;
         
-        // Only render if envelope is active
-        if (voice.env.isActive()) {
-//            // Multiply noise by velocity (which is divided by 127),
-//            // 6dB reduction (* 0.5), then put in output
-//            output = noise * (voice.velocity / 127.0f) * 0.5f;
+        // TODO: stereophony p.196
+
+        for (int v = 0; v < constants::MAX_VOICES; ++v) {
+            Voice& voice = voices[v];
             
-            output = voice.render(noise);
+            if (voice.env.isActive()) {
+                float output = voice.render(noise);
+                outputLeft += output;
+                outputRight += output;
+            }
         }
-        
-        // Write value in buffers
-        outputBufferLeft[sample] = output;
+
+        // Write value in left and right buffers
         if (outputBufferRight != nullptr) {
-            outputBufferRight[sample] = output;
+            outputBufferLeft[sample] = outputLeft;
+            outputBufferRight[sample] = outputRight;
+        }
+        else {
+            // Mix both output in left buffer if mono
+            outputBufferLeft[sample] = (outputLeft + outputRight) * 0.5f;
         }
     }
     
     // Reset envelope if done
-    if (!voice.env.isActive()) {
-        voice.env.reset();
+    for (int v = 0; v < constants::MAX_VOICES; ++v) {
+        Voice& voice = voices[v];
+        
+        if (!voice.env.isActive()) {
+            voice.env.reset();
+        }
     }
-    
+
     // TODO: remove when done with dev, but add back when developing features!
     loudnessProtectBuffer(outputBufferLeft, sampleCount);
     loudnessProtectBuffer(outputBufferRight, sampleCount);
@@ -116,44 +139,19 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
     }
 }
 
-void Synth::noteOn(int note, int velocity)
-{
-    voice.note = note;
-    //voice.velocity = velocity;
-    
-    // Convert MIDI note to frequency
-    // The formula is, with base frequency 440Hz : frequency = 440 × 2^(N/12)
-    // eg.: 400 x 2^(-1/12) is one semitone down from A, 400 x 2^(2/12) is a tone up from A
-    // N = (note - 69) to get the number of semitones difference with 440Hz A (MIDI #69)
-    // Also add tuning modifier
-    // float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
-    
-    
-//    // Sine
-//    voice.sineOsc.amplitude = (velocity / 127.0f) * 0.5f;
-//    voice.osc.freq = freq;
-//    voice.osc.sampleRate = sampleRate;
-//    voice.osc.phaseOffset = 0.0f;
-//    voice.sineOsc.increment = freq / sampleRate;
-//    voice.sineOsc.reset();
-//    
-//    // Saw (old)
-//    voice.sawOsc.amplitude = (velocity / 127.0f) * 0.5f;
-//    voice.sawOsc.increment = freq / sampleRate;
-//    voice.sawOsc.freq = freq;
-//    voice.sawOsc.sampleRate = sampleRate;
-//    voice.sawOsc.reset();
-    
-    // Saw oscillators (new)
-    // voice.period = sampleRate / freq;
-    float period = calcPeriod(note);
+void Synth::startVoice(int v, int note, int velocity) {
+    float period = calcPeriod(v, note);
+
+    Voice& voice = voices[v];
     voice.period = period;
+    voice.note = note;
+    
     voice.osc1.amplitude = (velocity / 127.0f) * 0.5f;
     // TODO: reset on new note could be a param
-    voice.osc1.reset();
-    voice.osc2.reset();
-    
-    // LRN dereference voice.env to access it just by env variable
+    // voice.osc1.reset();
+    // voice.osc2.reset();
+
+    // LRN & to dereference voice.env to access it just by env variable
     // Envelope settings + trigger envelope
     Envelope& env = voice.env;
     env.attackMultiplier = envAttack;
@@ -163,22 +161,53 @@ void Synth::noteOn(int note, int velocity)
     env.attack();
 }
 
+void Synth::noteOn(int note, int velocity)
+{
+    int v = 0; // Voice index
+    
+    if (numVoices > 1) {
+        v = findFreeVoice();
+    }
+    
+    startVoice(v, note, velocity);
+}
+
 void Synth::noteOff(int note, int velocity)
 {
     // TODO: if noteOff velocity is to be implemented, use here
-    if (voice.note == note) {
-        voice.release();
-        //voice.velocity = 0;
+
+    for (int v = 0; v < constants::MAX_VOICES; ++v) {
+        if (voices[v].note == note) {
+            voices[v].release();
+            voices[v].note = constants::NO_NOTE_VALUE;
+            //voice.velocity = 0;
+        }
     }
 }
 
-float Synth::calcPeriod(int note) const
+float Synth::calcPeriod(int v, int note) const
 {
-    // TODO: book p.186
-    float period = tune * std::exp(-0.05776226505f * float(note));
+    // TODO: book p.186, p.199 for detune
+    float period = tune * std::exp(-0.05776226505f * (float(note) + (constants::ANALOG_DRIFT * float(v))));
     // Ensure that the period or detuned pitch of OSC2 is at least 6 samples long,
     // else we double it. This is because the BLIT based oscillator may not work
     // too well if the perdio is too small
     while (period < 6.0f || (period * osc2detune) < 6.0f) { period += period; }
     return period;
+}
+
+int Synth::findFreeVoice() const
+{
+    int v = 0;
+    float l = 100.0f; // Arbitrarily loud level
+    
+    // Find quietest voice that is not in attack stage
+    for (int i = 0; i < constants::MAX_VOICES; ++i) {
+        if (voices[i].env.level < l && !voices[i].env.isInAttack()) {
+            l = voices[i].env.level;
+            v = i;
+        }
+    }
+    
+    return v;
 }

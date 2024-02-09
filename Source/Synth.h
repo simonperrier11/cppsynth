@@ -31,6 +31,7 @@ public:
     float envRelease;
     float tune;
     float osc2detune;
+    int numVoices;
     
     Synth();
     
@@ -62,7 +63,8 @@ public:
 private:
     float sampleRate;
     float pitchBend;
-    Voice voice;
+    // LRN allocate arr size directly in std::array<Type, Size> arr;
+    std::array<Voice, constants::MAX_VOICES> voices;
     NoiseGenerator noiseGen;
     
     /**
@@ -75,8 +77,21 @@ private:
      */
     void noteOff(int note, int velocity);
     
+    // LRN const after function guarantees that the function will
+    //  not change the object it is invoked on (its members)
     /**
-     Calculates the period given a MIDI note.
+     Calculates and returns the period given a MIDI note.
      */
-    float calcPeriod(int note) const;
+    float calcPeriod(int v, int note) const;
+    
+    /**
+     Starts a voice.
+     */
+    void startVoice(int v, int note, int velocity);
+    
+    /**
+     Finds a free voice to use for the next note played when all voices are in use. This will be the 
+     quietest voice that is not in the attack stage. The index of the voice is returned.
+     */
+    int findFreeVoice() const;
 };
