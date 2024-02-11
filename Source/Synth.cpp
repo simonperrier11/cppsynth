@@ -35,7 +35,10 @@ void Synth::reset()
     }
     
     noiseGen.reset();
+    
+    // Default values for sytnh
     pitchBend = 1.0f;
+    sustainPressed = false;
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -116,7 +119,7 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
 
     switch (command) {
         case 0x80: { // Note Off command code
-            noteOff(note, velocity);
+            noteOff(note);
             break;
         }
         case 0x90: { // Note On command code
@@ -126,8 +129,13 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
             else {
                 // Note On with no velocity is treated as Note Off
                 // (running status optimization)
-                noteOff(note, velocity);
+                noteOff(note);
             }
+            break;
+        }
+        case 0xB0: {
+            // CC message
+            controlChange(data1, data2);
             break;
         }
         case 0xE0: {
@@ -172,15 +180,19 @@ void Synth::noteOn(int note, int velocity)
     startVoice(v, note, velocity);
 }
 
-void Synth::noteOff(int note, int velocity)
+void Synth::noteOff(int note)
 {
     // TODO: if noteOff velocity is to be implemented, use here
 
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         if (voices[v].note == note) {
-            voices[v].release();
-            voices[v].note = constants::NO_NOTE_VALUE;
-            //voice.velocity = 0;
+            if (sustainPressed) {
+                voices[v].note = constants::SUSTAINED_NOTE_VALUE;
+            }
+            else {
+                voices[v].release();
+                voices[v].note = constants::NO_NOTE_VALUE;
+            }
         }
     }
 }
@@ -210,4 +222,22 @@ int Synth::findFreeVoice() const
     }
     
     return v;
+}
+
+void Synth::controlChange(uint8_t data1, uint8_t data2)
+{
+    switch(data1) {
+        case 0x40: {
+            // Sustain pedal is pressed
+            // Most sustain pedals send 0 for false and 127 for true
+            sustainPressed = (data2 >= 64);
+            
+            // Sustain pedal is lifted
+            if (!sustainPressed) {
+                // Call noteOff on all previously sustained notes
+                noteOff(constants::SUSTAINED_NOTE_VALUE);
+            }
+            break;
+        }
+    }
 }

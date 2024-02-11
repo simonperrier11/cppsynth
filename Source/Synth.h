@@ -60,9 +60,15 @@ public:
      */
     void midiMessage(uint8_t data0, uint8_t data1, uint8_t data2);
     
+    /**
+     Handles various MIDI CC messages.
+     */
+    void controlChange(uint8_t data1, uint8_t data2);
+    
 private:
     float sampleRate;
     float pitchBend;
+    bool sustainPressed;
     // LRN allocate arr size directly in std::array<Type, Size> arr;
     std::array<Voice, constants::MAX_VOICES> voices;
     NoiseGenerator noiseGen;
@@ -75,7 +81,7 @@ private:
     /**
      Handles the Note Off command.
      */
-    void noteOff(int note, int velocity);
+    void noteOff(int note);
     
     // LRN const after function guarantees that the function will
     //  not change the object it is invoked on (its members)
