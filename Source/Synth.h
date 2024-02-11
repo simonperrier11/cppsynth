@@ -31,7 +31,10 @@ public:
     float envRelease;
     float tune;
     float osc2detune;
+    float volumeTrim;
     int numVoices;
+    // TODO: apply smoothing technique to some other params as well (osc mix, etc.)
+    juce::LinearSmoothedValue<float> outputLevelSmoother;
     
     Synth();
     
@@ -94,6 +97,11 @@ private:
      Starts a voice.
      */
     void startVoice(int v, int note, int velocity);
+    
+    /**
+     When playing legato in mono mode, this is used when pressing a new note.
+     */
+    void restartVoiceLegato(int note, int velocity);
     
     /**
      Finds a free voice to use for the next note played when all voices are in use. This will be the 

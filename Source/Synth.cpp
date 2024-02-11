@@ -39,6 +39,7 @@ void Synth::reset()
     // Default values for sytnh
     pitchBend = 1.0f;
     sustainPressed = false;
+    outputLevelSmoother.reset(sampleRate, 0.05); // 50 msec
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -79,6 +80,11 @@ void Synth::render(float** outputBuffers, int sampleCount)
                 outputRight += output;
             }
         }
+        
+        // Apply output level with smoothing
+        float outputLevel = outputLevelSmoother.getNextValue();
+        outputLeft *= outputLevel;
+        outputRight *= outputLevel;
 
         // Write value in left and right buffers
         if (outputBufferRight != nullptr) {
@@ -154,7 +160,7 @@ void Synth::startVoice(int v, int note, int velocity) {
     voice.period = period;
     voice.note = note;
     
-    voice.osc1.amplitude = (velocity / 127.0f) * 0.5f;
+    voice.osc1.amplitude = velocity * volumeTrim;
     // TODO: reset on new note could be a param
     // voice.osc1.reset();
     // voice.osc2.reset();
@@ -169,11 +175,27 @@ void Synth::startVoice(int v, int note, int velocity) {
     env.attack();
 }
 
+void Synth::restartVoiceLegato(int note, int velocity) {
+    float period = calcPeriod(0, note);
+    
+    Voice& voice = voices[0];
+    
+    voice.period = period;
+    voice.env.level += constants::SILENCE_TRESHOLD + constants::SILENCE_TRESHOLD;
+    voice.note = note;
+}
+
 void Synth::noteOn(int note, int velocity)
 {
     int v = 0; // Voice index
     
-    if (numVoices > 1) {
+    if (numVoices == 1) { // Mono
+        if (voices[0].note > 0) { // Legato
+            restartVoiceLegato(note, velocity);
+            return;
+        }
+    }
+    else { // Poly
         v = findFreeVoice();
     }
     

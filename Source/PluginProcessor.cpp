@@ -146,6 +146,9 @@ void CppsynthAudioProcessor::releaseResources()
 void CppsynthAudioProcessor::reset()
 {
     synth.reset();
+    
+    // Assign initial (without ramping it) and next target values to smoother
+    synth.outputLevelSmoother.setCurrentAndTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -615,4 +618,9 @@ void CppsynthAudioProcessor::update()
     
     // Voices
     synth.numVoices = (polyModeParam->getIndex() == 0 ? 1 : constants::MAX_VOICES);
+    
+    // Volume
+    // TODO: book p. 215
+    synth.volumeTrim = 0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * 1.5f;
+    synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
 }
