@@ -239,5 +239,16 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
             }
             break;
         }
+        default: {
+            // Anything with control ID >= 120 is treated as a PANIC command
+            // Kill all voices and lift sustain
+            if (data1 >= 0x78) {
+                for (int v = 0; v < constants::MAX_VOICES; ++v) {
+                    voices[v].reset();
+                }
+                sustainPressed = false;
+            }
+            break;
+        }
     }
 }
