@@ -155,12 +155,18 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
 
 void Synth::startVoice(int v, int note, int velocity) {
     float period = calcPeriod(v, note);
+    
+    // Apply curve to velocity
+//    // Curve recommended by MIDI Association
+//     float velocityCurve = float(velocity * velocity) / 127.0f;
+    // Custom curve with dynamic range -23dB - 0.72dB
+    float velocityCurve = 0.004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
 
     Voice& voice = voices[v];
     voice.period = period;
     voice.note = note;
     
-    voice.osc1.amplitude = velocity * volumeTrim;
+    voice.osc1.amplitude = velocityCurve * volumeTrim;
     // TODO: reset on new note could be a param
     // voice.osc1.reset();
     // voice.osc2.reset();
@@ -187,6 +193,11 @@ void Synth::restartVoiceLegato(int note, int velocity) {
 
 void Synth::noteOn(int note, int velocity)
 {
+    // Disables velocity of note (force to 80)
+    if (ignoreVelocity) {
+        velocity = 80;
+    }
+    
     int v = 0; // Voice index
     
     if (numVoices == 1) { // Mono

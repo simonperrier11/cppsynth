@@ -32,7 +32,9 @@ public:
     float tune;
     float osc2detune;
     float volumeTrim;
+    float velocitySensitivity;
     int numVoices;
+    bool ignoreVelocity;
     // TODO: apply smoothing technique to some other params as well (osc mix, etc.)
     juce::LinearSmoothedValue<float> outputLevelSmoother;
     

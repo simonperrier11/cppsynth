@@ -38,7 +38,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
 //    castJuceParameter(apvts, ParameterID::filterReso, filterResoParam);
 //    castJuceParameter(apvts, ParameterID::filterEnv, filterEnvParam);
 //    castJuceParameter(apvts, ParameterID::filterLFO, filterLFOParam);
-//    castJuceParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
+    castJuceParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
 //    castJuceParameter(apvts, ParameterID::filterAttack, filterAttackParam);
 //    castJuceParameter(apvts, ParameterID::filterDecay, filterDecayParam);
 //    castJuceParameter(apvts, ParameterID::filterSustain, filterSustainParam);
@@ -449,15 +449,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //                                                           0.0f,
 //                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
 //    
-//    // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
-//                                                           "Velocity",
-//                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 1.0f),
-//                                                           0.0f,
-//                                                           juce::AudioParameterFloatAttributes()
-//                                                            .withLabel("%")
-//                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
-//
+    // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
+    // TODO: separate amplitude velocity and filter velocity
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
+                                                           "Velocity",
+                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes()
+                                                            .withLabel("%")
+                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
+
 //    // Filter attack
 //    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterAttack,
 //                                                           "Filter Attack",
@@ -577,6 +578,13 @@ void CppsynthAudioProcessor::update()
     // TODO: not sure about this approach... Maybe implement env times directly in ms (p. 178)
     // LRN -> is like ., except it dereferences a pointer first; foo.bar() calls method bar() on object foo,
     //  foo->bar calls method bar on the object pointed to by pointer foo
+    /*
+     slider at 0% = 0.0376 seconds
+     slider at 25% = 0.2454 seconds
+     slider at 50% = 1.601 seconds
+     slider at 75% = 10.437 seconds
+     slider at 100% = 68.056 seconds
+     */
     synth.envAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envAttackParam->get()));
     synth.envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envDecayParam->get()));
     synth.envSustain = envSustainParam->get() / 100.0f;
@@ -623,4 +631,17 @@ void CppsynthAudioProcessor::update()
     // TODO: book p. 215
     synth.volumeTrim = 0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * 1.5f;
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
+    
+    // Filter velocity
+    float filterVelocity = filterVelocityParam->get();
+    if (filterVelocity < -90.0f) {
+        synth.velocitySensitivity = 0.0f;
+        synth.ignoreVelocity = true;
+    }
+    else {
+        synth.velocitySensitivity = 0.0005f * filterVelocity;
+        synth.ignoreVelocity = false;
+    }
+    
+    
 }
