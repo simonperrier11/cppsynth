@@ -40,6 +40,8 @@ void Synth::reset()
     pitchBend = 1.0f;
     sustainPressed = false;
     outputLevelSmoother.reset(sampleRate, 0.05); // 50 msec
+    lfo = 0.0f;
+    lfoStep = 0;
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -64,6 +66,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
         
     // For all the samples we need to render (sampleCount)...
     for (int sample = 0; sample < sampleCount; ++sample) {
+        updateLfo();
+        
         // Get next noise value
         const float noise = noiseGen.nextValue() * noiseMix;
         float outputLeft = 0.0f;
@@ -282,6 +286,33 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
                 sustainPressed = false;
             }
             break;
+        }
+    }
+}
+
+void Synth::updateLfo()
+{
+    // Decrement and enter every LOWER_UPDATE_RATE_MAX_VALUE step
+    if (--lfoStep <= 0) {
+        lfoStep = constants::LOWER_UPDATE_RATE_MAX_VALUE;
+        
+        lfo += lfoInc;
+        
+        // Keep lfo phase value between -/+ pi for std:sin()
+        if (lfo > constants::PI) { lfo -= constants::TWO_PI; }
+        
+        const float sine = std::sin(lfo);
+        
+        // Create and apply vibrato modulation to voices
+        float vibratoMod = 1.0f + sine * vibrato;
+        
+        for (int v = 0; v < constants::MAX_VOICES; ++v) {
+            Voice& voice = voices[v];
+            
+            if (voice.env.isActive()) {
+                voice.osc1.modulation = vibratoMod;
+                voice.osc2.modulation = vibratoMod;
+            }
         }
     }
 }

@@ -23,6 +23,12 @@ public:
     // than the frequency, as the period gives you the number of samples between
     // this impulse peak and the next.
     float period;
+    /*
+     Since this is a multiplier for the period — as opposed to the frequency — a value of
+     modulation larger than 1 will make the note lower, while a value smaller than 1 will make
+     the note higher.
+     */
+    float modulation = 1.0f; // modulation multiplier
     
     void reset() override
     {
@@ -44,7 +50,8 @@ public:
         phase += increment;
         
         if (phase <= constants::PI_OVER_FOUR) {
-            float halfPeriod = period / 2.0f;
+            // Apply modulation
+            float halfPeriod = (period / 2.0f) * modulation;
             
             phaseMax = std::floor(0.5f + halfPeriod) - 0.5f;
             dc = 0.5f * amplitude / phaseMax;

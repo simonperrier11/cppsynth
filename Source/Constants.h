@@ -41,4 +41,8 @@ namespace constants
 
     // Analog oscillator drift factor
     inline constexpr float ANALOG_DRIFT { 0.002f };
+
+    // Lower rate; used for LFO among other things
+    // Will be multiplied by the inverse of the sample rate
+    inline constexpr int LOWER_UPDATE_RATE_MAX_VALUE { 32 };
 }

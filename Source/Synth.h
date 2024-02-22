@@ -33,6 +33,8 @@ public:
     float osc2detune;
     float volumeTrim;
     float velocitySensitivity;
+    float lfoInc; // phase increment for LFO (between 0 and 2pi)
+    float vibrato;
     int numVoices;
     bool ignoreVelocity;
     // TODO: apply smoothing technique to some other params as well (osc mix, etc.)
@@ -71,8 +73,10 @@ public:
     void controlChange(uint8_t data1, uint8_t data2);
     
 private:
+    int lfoStep; // counter from max value to 0
     float sampleRate;
     float pitchBend;
+    float lfo; // current phase of LFO sine wave
     bool sustainPressed;
     // LRN allocate arr size directly in std::array<Type, Size> arr;
     std::array<Voice, constants::MAX_VOICES> voices;
@@ -110,4 +114,9 @@ private:
      quietest voice that is not in the attack stage. The index of the voice is returned.
      */
     int findFreeVoice() const;
+    
+    /**
+     Updates the synth's LFO .
+     */
+    void updateLfo();
 };

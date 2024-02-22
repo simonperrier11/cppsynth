@@ -47,8 +47,8 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::envDecay, envDecayParam);
     castJuceParameter(apvts, ParameterID::envSustain, envSustainParam);
     castJuceParameter(apvts, ParameterID::envRelease, envReleaseParam);
-//    castJuceParameter(apvts, ParameterID::lfoRate, lfoRateParam);
-//    castJuceParameter(apvts, ParameterID::vibrato, vibratoParam);
+    castJuceParameter(apvts, ParameterID::lfoRate, lfoRateParam);
+    castJuceParameter(apvts, ParameterID::vibrato, vibratoParam);
     castJuceParameter(apvts, ParameterID::noise, noiseParam);
     castJuceParameter(apvts, ParameterID::octave, octaveParam);
     castJuceParameter(apvts, ParameterID::tuning, tuningParam);
@@ -515,23 +515,23 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            30.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
-//    // LFO rate
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lfoRate,
-//                                                           "LFO Rate",
-//                                                           juce::NormalisableRange<float>(),
-//                                                           0.81f,
-//                                                           juce::AudioParameterFloatAttributes()
-//                                                            .withLabel("Hz")
-//                                                            .withStringFromValueFunction(lfoRateStringFromValue)));
-//
-//    // Vibrato or PWM amount
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
-//                                                           "Vibrato/PWM",
-//                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
-//                                                           0.0f,
-//                                                           juce::AudioParameterFloatAttributes()
-//                                                            .withLabel("%")
-//                                                            .withStringFromValueFunction(vibratoStringFromValue)));
+    // LFO rate
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lfoRate,
+                                                           "LFO Rate",
+                                                           juce::NormalisableRange<float>(),
+                                                           0.81f,
+                                                           juce::AudioParameterFloatAttributes()
+                                                            .withLabel("Hz")
+                                                            .withStringFromValueFunction(lfoRateStringFromValue)));
+
+    // Vibrato or PWM amount
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
+                                                           "Vibrato/PWM",
+                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes()
+                                                            .withLabel("%")
+                                                            .withStringFromValueFunction(vibratoStringFromValue)));
 
     // Noise mix
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::noise,
@@ -643,5 +643,17 @@ void CppsynthAudioProcessor::update()
         synth.ignoreVelocity = false;
     }
     
+    // LFO
+    // Lower update rate for some stuff that does not need to be calculated as frequently
+    const float inverseUpdateRate = inverseSampleRate * constants::LOWER_UPDATE_RATE_MAX_VALUE;
+    
+    // Skew parameter value to 0.02Hz-20Hz approx.
+    float lfoRate = std::exp(7.0f * lfoRateParam->get() - 4.0f);
+    synth.lfoInc = lfoRate * inverseUpdateRate * float(constants::TWO_PI);
+    
+    // Vibrato (LFO depth)
+    // Parabolic curve from 0.0 to 0.05; with sin() function pitch will vary from one semitone down to one semitown up
+    float vibrato = vibratoParam->get() / 200.0f;
+    synth.vibrato = 0.2f * vibrato * vibrato;
     
 }
