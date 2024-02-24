@@ -7,6 +7,7 @@
               pluginCode="csyn">
   <MAINGROUP id="j56MzC" name="cppsynth">
     <GROUP id="{21F9D328-4824-2EC7-C8E4-F87A0662B99D}" name="Source">
+      <FILE id="ea2MED" name="Filter.h" compile="0" resource="0" file="Source/Filter.h"/>
       <FILE id="N1NCWE" name="Envelope.h" compile="0" resource="0" file="Source/Envelope.h"/>
       <FILE id="GXQGC1" name="Blit.h" compile="0" resource="0" file="Source/Blit.h"/>
       <FILE id="rYcIm2" name="Oscillator.h" compile="0" resource="0" file="Source/Oscillator.h"/>
