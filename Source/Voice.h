@@ -25,6 +25,8 @@ struct Voice
     int velocity;
     float saw;
     float period; // TODO: the synth used in the book sets its pitch by its period, but I might want to change this
+    float target; // target for glide
+    float glideRate; // copy of synth's glide rate
     Envelope env;
     Blit osc1;
     Blit osc2;
@@ -69,6 +71,14 @@ struct Voice
         
         // Apply enveloppe
         return output * envelope;
+    }
+    
+    /**
+     Exponential one-pole filter formula to calculate glide between notes.
+     */
+    float updateLFO()
+    {
+        period += glideRate * (target - period);
     }
 };
 

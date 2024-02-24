@@ -34,8 +34,12 @@ public:
     float volumeTrim;
     float velocitySensitivity;
     float lfoInc; // phase increment for LFO (between 0 and 2pi)
-    float vibrato;
+    float vibrato; // pitch LFO depth
+    float modWheel;
+    float glideRate;
+    float glideBend;
     int numVoices;
+    int glideMode;
     bool ignoreVelocity;
     // TODO: apply smoothing technique to some other params as well (osc mix, etc.)
     juce::LinearSmoothedValue<float> outputLevelSmoother;
@@ -73,7 +77,8 @@ public:
     void controlChange(uint8_t data1, uint8_t data2);
     
 private:
-    int lfoStep; // counter from max value to 0
+    int lfoStep; // counter from LFO max value to 0
+    int lastNote; // keep track of last note for glide
     float sampleRate;
     float pitchBend;
     float lfo; // current phase of LFO sine wave
@@ -119,4 +124,17 @@ private:
      Updates the synth's LFO .
      */
     void updateLfo();
+    
+    /**
+     Updates the oscillators period if the voice changes it (while gliding, for example).
+     */
+    void updatePeriod(Voice& voice);
+    
+    /**
+     Helper method to determine if synth is being played in legato style.
+     The synth is being played in legato style if, for a new noteOn event, at least one key
+     must be held down for a previous note.
+     */
+    bool isPlayingLegatoStyle() const;
+
 };

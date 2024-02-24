@@ -42,6 +42,8 @@ void Synth::reset()
     outputLevelSmoother.reset(sampleRate, 0.05); // 50 msec
     lfo = 0.0f;
     lfoStep = 0;
+    modWheel = 0;
+    lastNote = 0;
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -58,8 +60,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
         Voice& voice = voices[v];
         
         if (voice.env.isActive()) {
-            voice.osc1.period = voice.period * pitchBend;
-            voice.osc2.period = voice.osc1.period * osc2detune;
+            updatePeriod(voice);
+            voice.glideRate = glideRate;
             voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
         }
     }
@@ -159,21 +161,36 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
 
 void Synth::startVoice(int v, int note, int velocity) {
     float period = calcPeriod(v, note);
-    
-    // Apply curve to velocity
-//    // Curve recommended by MIDI Association
-//     float velocityCurve = float(velocity * velocity) / 127.0f;
-    // Custom curve with dynamic range -23dB - 0.72dB
-    float velocityCurve = 0.004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
 
     Voice& voice = voices[v];
-    voice.period = period;
+    voice.target = period;
+    
+    // Calculate note distance for glide
+    int noteDistance = 0;
+    if (lastNote > 0) {
+        // Glide mode "always" or "while playing legato"
+        if ((glideMode == 2) || ((glideMode == 1) && isPlayingLegatoStyle())) {
+            noteDistance = note - lastNote;
+        }
+    }
+    
+    // TODO: book p.227
+    voice.period = period * std::pow(1.059463094359f, float(noteDistance) - glideBend);
+    
+    // Limit period to small value
+    if (voice.period < 6.0f) { voice.period = 6.0f; }
+    
+    lastNote = note;
     voice.note = note;
     
-    voice.osc1.amplitude = velocityCurve * volumeTrim;
     // TODO: reset on new note could be a param
     // voice.osc1.reset();
     // voice.osc2.reset();
+    
+    // Apply curve to velocity
+    // Custom curve with dynamic range -23dB - 0.72dB
+    float velocityCurve = 0.004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
+    voice.osc1.amplitude = velocityCurve * volumeTrim;
 
     // LRN & to dereference voice.env to access it just by env variable
     // Envelope settings + trigger envelope
@@ -189,8 +206,11 @@ void Synth::restartVoiceLegato(int note, int velocity) {
     float period = calcPeriod(0, note);
     
     Voice& voice = voices[0];
+    voice.target = period;
     
-    voice.period = period;
+    // Directly set period to voice if glide is off
+    if (glideMode == 0) { voice.period = period; }
+    
     voice.env.level += constants::SILENCE_TRESHOLD + constants::SILENCE_TRESHOLD;
     voice.note = note;
 }
@@ -264,8 +284,12 @@ int Synth::findFreeVoice() const
 void Synth::controlChange(uint8_t data1, uint8_t data2)
 {
     switch(data1) {
-        case 0x40: {
-            // Sustain pedal is pressed
+        case 0x01: { // mod wheel
+            // Convert data2 to parabolic curve (more control over small values)
+            modWheel = 0.0005f * float(data2);
+            break;
+        }
+        case 0x40: { // sustain
             // Most sustain pedals send 0 for false and 127 for true
             sustainPressed = (data2 >= 64);
             
@@ -304,7 +328,7 @@ void Synth::updateLfo()
         const float sine = std::sin(lfo);
         
         // Create and apply vibrato modulation to voices
-        float vibratoMod = 1.0f + sine * vibrato;
+        float vibratoMod = 1.0f + sine * (modWheel + vibrato);
         
         for (int v = 0; v < constants::MAX_VOICES; ++v) {
             Voice& voice = voices[v];
@@ -312,7 +336,25 @@ void Synth::updateLfo()
             if (voice.env.isActive()) {
                 voice.osc1.modulation = vibratoMod;
                 voice.osc2.modulation = vibratoMod;
+                
+                voice.updateLFO();
+                updatePeriod(voice);
             }
         }
     }
+}
+
+void Synth::updatePeriod(Voice &voice)
+{
+    voice.osc1.period = voice.period * pitchBend;
+    voice.osc2.period = voice.osc1.period * osc2detune;
+}
+
+bool Synth::isPlayingLegatoStyle() const
+{
+    int held = 0;
+    for (int i = 0; i < constants::MAX_VOICES; ++i) {
+        if (voices[i].note > 0) { held += 1; }
+    }
+    return held > 0;
 }

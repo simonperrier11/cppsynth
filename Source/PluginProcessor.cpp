@@ -31,9 +31,9 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::oscMix, oscMixParam);
     castJuceParameter(apvts, ParameterID::oscTune, oscTuneParam);
     castJuceParameter(apvts, ParameterID::oscFine, oscFineParam);
-//    castJuceParameter(apvts, ParameterID::glideMode, glideModeParam);
-//    castJuceParameter(apvts, ParameterID::glideRate, glideRateParam);
-//    castJuceParameter(apvts, ParameterID::glideBend, glideBendParam);
+    castJuceParameter(apvts, ParameterID::glideMode, glideModeParam);
+    castJuceParameter(apvts, ParameterID::glideRate, glideRateParam);
+    castJuceParameter(apvts, ParameterID::glideBend, glideBendParam);
 //    castJuceParameter(apvts, ParameterID::filterFreq, filterFreqParam);
 //    castJuceParameter(apvts, ParameterID::filterReso, filterResoParam);
 //    castJuceParameter(apvts, ParameterID::filterEnv, filterEnvParam);
@@ -401,25 +401,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                             .withLabel("%")
                                                             .withStringFromValueFunction(oscMixStringFromValue)));
     
-//    // Glide Mode
-//    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::glideMode, 
-//                                                            "Glide Mode",
-//                                                            juce::StringArray { "Off", "Legato", "Always" },
-//                                                            0));
-//
-//    // Glide Rate
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideRate, 
-//                                                           "Glide Rate",
-//                                                           juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
-//                                                           35.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-//
-//    // Glide Bend (add additionnal glide to notes played)
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideBend, 
-//                                                           "Glide Bend",
-//                                                           juce::NormalisableRange<float>(-36.0f, 36.0f, 0.01f, 0.4f, true),
-//                                                           0.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("semi")));
+    // Glide Mode
+    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::glideMode, 
+                                                            "Glide Mode",
+                                                            juce::StringArray { "Off", "Legato", "Always" },
+                                                            0));
+
+    // Glide Rate
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideRate, 
+                                                           "Glide Rate",
+                                                           juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
+                                                           35.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Glide Bend (add additionnal glide to notes played)
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideBend, 
+                                                           "Glide Bend",
+                                                           juce::NormalisableRange<float>(-36.0f, 36.0f, 0.01f, 0.4f, true),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("semi")));
 
 //    // Filter cutoff frequency
 //    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterFreq,
@@ -525,9 +525,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                             .withStringFromValueFunction(lfoRateStringFromValue)));
 
     // Vibrato or PWM amount
+//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
+//                                                           "Vibrato/PWM",
+//                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
+//                                                           0.0f,
+//                                                           juce::AudioParameterFloatAttributes()
+//                                                            .withLabel("%")
+//                                                            .withStringFromValueFunction(vibratoStringFromValue)));
+//
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
-                                                           "Vibrato/PWM",
-                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
+                                                           "LFO Depth",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes()
                                                             .withLabel("%")
@@ -574,6 +582,9 @@ void CppsynthAudioProcessor::update()
     // TODO: it would be more efficient to only update params that have changed
     float sampleRate = float(getSampleRate());
     float inverseSampleRate = 1.0f / sampleRate;
+    
+    // Lower update rate for some stuff that does not need to be calculated as frequently
+    const float inverseUpdateRate = inverseSampleRate * constants::LOWER_UPDATE_RATE_MAX_VALUE;
     
     // TODO: not sure about this approach... Maybe implement env times directly in ms (p. 178)
     // LRN -> is like ., except it dereferences a pointer first; foo.bar() calls method bar() on object foo,
@@ -644,16 +655,25 @@ void CppsynthAudioProcessor::update()
     }
     
     // LFO
-    // Lower update rate for some stuff that does not need to be calculated as frequently
-    const float inverseUpdateRate = inverseSampleRate * constants::LOWER_UPDATE_RATE_MAX_VALUE;
-    
     // Skew parameter value to 0.02Hz-20Hz approx.
     float lfoRate = std::exp(7.0f * lfoRateParam->get() - 4.0f);
     synth.lfoInc = lfoRate * inverseUpdateRate * float(constants::TWO_PI);
     
     // Vibrato (LFO depth)
-    // Parabolic curve from 0.0 to 0.05; with sin() function pitch will vary from one semitone down to one semitown up
-    float vibrato = vibratoParam->get() / 200.0f;
-    synth.vibrato = 0.2f * vibrato * vibrato;
+    // Divide by 110.0 to prevent sample being too high
+    float vibrato = vibratoParam->get() / 120.0f;
+    synth.vibrato = vibrato;
     
+    // Glide
+    synth.glideMode = glideModeParam->getIndex();
+    
+    float glideRate = glideRateParam->get();
+    if (glideRate < 2.0f) {
+        synth.glideRate = 1.0f; // No glide
+    }
+    else {
+        synth.glideRate = 1.0f - std::exp(-inverseUpdateRate * std::exp(6.0f - 0.07f * glideRate));
+    }
+    
+    synth.glideBend = glideBendParam->get();
 }
