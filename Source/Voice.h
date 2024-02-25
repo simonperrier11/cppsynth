@@ -28,6 +28,8 @@ struct Voice
     float period; // TODO: the synth used in the book sets its pitch by its period, but I might want to change this
     float target; // target for glide
     float glideRate; // copy of synth's glide rate
+    float filterCutoff;
+    float filterQ;
     Envelope env;
     Blit osc1;
     Blit osc2;
@@ -86,7 +88,7 @@ struct Voice
     float updateLFO()
     {
         period += glideRate * (target - period);
-        filter.updateCoefficiants(1000.0f, 0.707f);
+        filter.updateCoefficiants(filterCutoff, filterQ);
     }
 };
 

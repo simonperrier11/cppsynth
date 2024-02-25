@@ -34,8 +34,8 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::glideMode, glideModeParam);
     castJuceParameter(apvts, ParameterID::glideRate, glideRateParam);
     castJuceParameter(apvts, ParameterID::glideBend, glideBendParam);
-//    castJuceParameter(apvts, ParameterID::filterFreq, filterFreqParam);
-//    castJuceParameter(apvts, ParameterID::filterReso, filterResoParam);
+    castJuceParameter(apvts, ParameterID::filterFreq, filterFreqParam);
+    castJuceParameter(apvts, ParameterID::filterReso, filterResoParam);
 //    castJuceParameter(apvts, ParameterID::filterEnv, filterEnvParam);
 //    castJuceParameter(apvts, ParameterID::filterLFO, filterLFOParam);
     castJuceParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
@@ -427,13 +427,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f),
 //                                                           100.0f,
 //                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-//
-//    // Filter resonance
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterReso,
-//                                                           "Filter Reso",
-//                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-//                                                           15.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter cutoff frequency
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterFreq,
+                                                           "Filter Cutoff",
+                                                           juce::NormalisableRange<float>(20.0f, 20000.0f, 0.1f, 0.5f, false),
+                                                           20000.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("Hz")));
+
+    // Filter resonance
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterReso,
+                                                           "Filter Q",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
 //
 //    // Filter enveloppe amount
 //    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterEnv,
@@ -535,7 +542,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
                                                            "LFO Depth",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f),
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f, 0.5f, false),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes()
                                                             .withLabel("%")
@@ -638,9 +645,17 @@ void CppsynthAudioProcessor::update()
     // Voices
     synth.numVoices = (polyModeParam->getIndex() == 0 ? 1 : constants::MAX_VOICES);
     
+    // Filter cutoff frequency
+    synth.filterCutoff = filterFreqParam->get();
+    
+    // Filter Q
+    // create an exponential curve that starts at filterQ = 1 and goes up to filterQ = 20
+    float filterReso = filterResoParam->get() / 100.0f;
+    synth.filterQ = std::exp(3.0f * filterReso);
+
     // Volume
-    // TODO: book p. 215
-    synth.volumeTrim = 0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * 1.5f;
+    // TODO: book p. 215, p. 244 for reso
+    synth.volumeTrim = 0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * (1.5f - 0.5f * filterReso);
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
     
     // Filter velocity

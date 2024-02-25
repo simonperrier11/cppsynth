@@ -68,6 +68,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
             updatePeriod(voice);
             voice.glideRate = glideRate;
             voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
+            voice.filterCutoff = filterCutoff;
+            voice.filterQ = filterQ;
         }
     }
         
@@ -206,6 +208,10 @@ void Synth::startVoice(int v, int note, int velocity) {
     env.sustainLevel = envSustain;
     env.releaseMultiplier = envRelease;
     env.attack();
+    
+    // Filter
+    voice.filterCutoff = filterCutoff;
+    voice.filterQ = filterQ;
 }
 
 void Synth::restartVoiceLegato(int note, int velocity) {

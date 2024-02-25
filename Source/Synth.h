@@ -38,6 +38,8 @@ public:
     float modWheel;
     float glideRate;
     float glideBend;
+    float filterCutoff;
+    float filterQ;
     int numVoices;
     int glideMode;
     bool ignoreVelocity;
