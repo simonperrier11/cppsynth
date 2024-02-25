@@ -21,6 +21,11 @@ Synth::Synth()
 void Synth::allocateResources(double sampleRate_, int /*samplesPerBlock*/) {
     // LRN static_cast has more compile-time checks than regular cast, and is safer
     sampleRate = static_cast<float>(sampleRate_);
+    
+    // Give sampleRate to voices filters to calculate coefficiants
+    for (int v = 0; v < constants::MAX_VOICES; ++v) {
+        voices[v].filter.sampleRate = sampleRate;
+    }
 }
 
 void Synth::deallocateResources()
@@ -103,12 +108,13 @@ void Synth::render(float** outputBuffers, int sampleCount)
         }
     }
     
-    // Reset envelope if done
+    // Reset envelope and filter if done
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         Voice& voice = voices[v];
         
         if (!voice.env.isActive()) {
             voice.env.reset();
+            voice.filter.reset();
         }
     }
 
