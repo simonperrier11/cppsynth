@@ -49,6 +49,7 @@ void Synth::reset()
     lfoStep = 0;
     modWheel = 0;
     lastNote = 0;
+    filterZip = 0;
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -345,13 +346,16 @@ void Synth::updateLfo()
         // LFO depth for filter cutoff
         float filterMod = filterLFODepth * sine;
         
+        // One-pole filter to move filterZip closer to filterMod every step
+        filterZip += 0.005f * (filterMod - filterZip);
+        
         for (int v = 0; v < constants::MAX_VOICES; ++v) {
             Voice& voice = voices[v];
             
             if (voice.env.isActive()) {
                 voice.osc1.modulation = vibratoMod;
                 voice.osc2.modulation = vibratoMod;
-                voice.filterMod = filterMod;
+                voice.filterMod = filterZip;
                 voice.updateLFO();
                 updatePeriod(voice);
             }

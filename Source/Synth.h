@@ -85,6 +85,7 @@ private:
     float sampleRate;
     float pitchBend;
     float lfo; // current phase of LFO sine wave
+    float filterZip; // will hold the smoothed version of filterMod value (to remove zipper noise)
     bool sustainPressed;
     // LRN allocate arr size directly in std::array<Type, Size> arr;
     std::array<Voice, constants::MAX_VOICES> voices;
