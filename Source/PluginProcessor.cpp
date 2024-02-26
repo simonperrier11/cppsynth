@@ -38,7 +38,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::filterReso, filterResoParam);
 //    castJuceParameter(apvts, ParameterID::filterEnv, filterEnvParam);
 //    castJuceParameter(apvts, ParameterID::filterLFO, filterLFOParam);
-    castJuceParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
+//    castJuceParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
 //    castJuceParameter(apvts, ParameterID::filterAttack, filterAttackParam);
 //    castJuceParameter(apvts, ParameterID::filterDecay, filterDecayParam);
 //    castJuceParameter(apvts, ParameterID::filterSustain, filterSustainParam);
@@ -458,14 +458,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //    
     // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
     // TODO: separate amplitude velocity and filter velocity
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
-                                                           "Velocity",
-                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 1.0f),
-                                                           0.0f,
-                                                           juce::AudioParameterFloatAttributes()
-                                                            .withLabel("%")
-                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
-
+//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
+//                                                           "Velocity",
+//                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 1.0f),
+//                                                           0.0f,
+//                                                           juce::AudioParameterFloatAttributes()
+//                                                            .withLabel("%")
+//                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
+    
 //    // Filter attack
 //    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterAttack,
 //                                                           "Filter Attack",
@@ -659,15 +659,17 @@ void CppsynthAudioProcessor::update()
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
     
     // Filter velocity
-    float filterVelocity = filterVelocityParam->get();
-    if (filterVelocity < -90.0f) {
-        synth.velocitySensitivity = 0.0f;
-        synth.ignoreVelocity = true;
-    }
-    else {
-        synth.velocitySensitivity = 0.0005f * filterVelocity;
-        synth.ignoreVelocity = false;
-    }
+//    float filterVelocity = filterVelocityParam->get();
+//    if (filterVelocity < -90.0f) {
+//        synth.velocitySensitivity = 0.0f;
+//        synth.ignoreVelocity = true;
+//    }
+//    else {
+//        synth.velocitySensitivity = 0.0005f * filterVelocity;
+//        synth.ignoreVelocity = false;
+//    }
+    
+    synth.ignoreVelocity = false;
     
     // LFO
     // Skew parameter value to 0.02Hz-20Hz approx.
