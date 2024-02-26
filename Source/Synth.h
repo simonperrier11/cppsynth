@@ -40,6 +40,7 @@ public:
     float glideBend;
     float filterCutoff;
     float filterQ;
+    float filterLFODepth;
     int numVoices;
     int glideMode;
     bool ignoreVelocity;

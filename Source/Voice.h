@@ -30,6 +30,7 @@ struct Voice
     float glideRate; // copy of synth's glide rate
     float filterCutoff;
     float filterQ;
+    float filterMod;
     Envelope env;
     Blit osc1;
     Blit osc2;
@@ -82,13 +83,17 @@ struct Voice
     }
     
     /**
-     Exponential one-pole filter formula to calculate glide between notes.
-     Also updates coefficiants of filter for voice.
+     Update various modulations on the voice
      */
-    float updateLFO()
+    void updateLFO()
     {
+        // Update period with glide rate
         period += glideRate * (target - period);
-        filter.updateCoefficiants(filterCutoff, filterQ);
+
+        // Update coefficiants of filter with modulation if any
+        float modulatedCutoff = filterCutoff * std::exp(filterMod);
+        modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f); // clamp to prevent crazy values
+        filter.updateCoefficiants(modulatedCutoff, filterQ);
     }
 };
 

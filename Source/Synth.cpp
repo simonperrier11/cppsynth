@@ -342,13 +342,16 @@ void Synth::updateLfo()
         // Create and apply vibrato modulation to voices
         float vibratoMod = 1.0f + sine * (modWheel + vibrato);
         
+        // LFO depth for filter cutoff
+        float filterMod = filterLFODepth * sine;
+        
         for (int v = 0; v < constants::MAX_VOICES; ++v) {
             Voice& voice = voices[v];
             
             if (voice.env.isActive()) {
                 voice.osc1.modulation = vibratoMod;
                 voice.osc2.modulation = vibratoMod;
-                
+                voice.filterMod = filterMod;
                 voice.updateLFO();
                 updatePeriod(voice);
             }

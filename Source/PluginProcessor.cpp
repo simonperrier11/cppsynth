@@ -37,7 +37,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::filterFreq, filterFreqParam);
     castJuceParameter(apvts, ParameterID::filterReso, filterResoParam);
 //    castJuceParameter(apvts, ParameterID::filterEnv, filterEnvParam);
-//    castJuceParameter(apvts, ParameterID::filterLFO, filterLFOParam);
+    castJuceParameter(apvts, ParameterID::filterLFO, filterLFOParam);
 //    castJuceParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
 //    castJuceParameter(apvts, ParameterID::filterAttack, filterAttackParam);
 //    castJuceParameter(apvts, ParameterID::filterDecay, filterDecayParam);
@@ -449,13 +449,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //                                                           50.0f,
 //                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
 //
-//    // Filter LFO amount
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterLFO,
-//                                                           "Filter LFO",
-//                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-//                                                           0.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-//    
+    // Filter LFO amount
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterLFO,
+                                                           "LFO Depth (Filter Cutoff)",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+  
     // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
     // TODO: separate amplitude velocity and filter velocity
 //    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
@@ -541,7 +541,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //                                                            .withStringFromValueFunction(vibratoStringFromValue)));
 //
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
-                                                           "LFO Depth",
+                                                           "LFO Depth (Amplitude)",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f, 0.5f, false),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes()
@@ -693,4 +693,8 @@ void CppsynthAudioProcessor::update()
     }
     
     synth.glideBend = glideBendParam->get();
+    
+    // Filter LFO depth
+    float filterLFO = filterLFOParam->get() / 100.0f;
+    synth.filterLFODepth = 2.5f * filterLFO * filterLFO; // Parabolic curve from 0 to 2.5
 }
