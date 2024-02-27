@@ -31,7 +31,9 @@ struct Voice
     float filterCutoff;
     float filterQ;
     float filterMod;
+    float filterEnvDepth;
     Envelope env;
+    Envelope filterEnv;
     Blit osc1;
     Blit osc2;
     Filter filter;
@@ -48,6 +50,7 @@ struct Voice
         osc2.reset();
         env.reset();
         filter.reset();
+        filterEnv.reset();
     }
     
     /**
@@ -56,6 +59,7 @@ struct Voice
     void release()
     {
         env.release();
+        filterEnv.release();
     }
     
     /**
@@ -89,9 +93,11 @@ struct Voice
     {
         // Update period with glide rate
         period += glideRate * (target - period);
+        
+        float filterEnvMod = filterEnv.nextValue() * filterEnvDepth;
 
-        // Update coefficiants of filter with modulation if any
-        float modulatedCutoff = filterCutoff * std::exp(filterMod);
+        // Update coefficiants of filter with modulation, if any
+        float modulatedCutoff = filterCutoff * std::exp(filterMod + filterEnvMod); // TODO: envmod outside of exp
         modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f); // clamp to prevent crazy values
         filter.updateCoefficiants(modulatedCutoff, filterQ);
     }

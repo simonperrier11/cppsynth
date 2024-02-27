@@ -71,12 +71,13 @@ void Synth::render(float** outputBuffers, int sampleCount)
             voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
             voice.filterCutoff = filterCutoff;
             voice.filterQ = filterQ;
+            voice.filterEnvDepth = filterEnvDepth;
         }
     }
         
     // For all the samples we need to render (sampleCount)...
     for (int sample = 0; sample < sampleCount; ++sample) {
-        updateLfo();
+        updateLFO();
         
         // Get next noise value
         const float noise = noiseGen.nextValue() * noiseMix;
@@ -213,6 +214,14 @@ void Synth::startVoice(int v, int note, int velocity) {
     // Filter
     voice.filterCutoff = filterCutoff;
     voice.filterQ = filterQ;
+    
+    // Filter envelope settings + trigger envelope
+    Envelope& filterEnv = voice.filterEnv;
+    filterEnv.attackMultiplier = filterAttack;
+    filterEnv.decayMultiplier = filterDecay;
+    filterEnv.sustainLevel = filterSustain;
+    filterEnv.releaseMultiplier = filterRelease;
+    filterEnv.attack();
 }
 
 void Synth::restartVoiceLegato(int note, int velocity) {
@@ -327,7 +336,7 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
     }
 }
 
-void Synth::updateLfo()
+void Synth::updateLFO()
 {
     // Decrement and enter every LOWER_UPDATE_RATE_MAX_VALUE step
     if (--lfoStep <= 0) {

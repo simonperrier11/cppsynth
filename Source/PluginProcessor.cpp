@@ -36,13 +36,13 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::glideBend, glideBendParam);
     castJuceParameter(apvts, ParameterID::filterFreq, filterFreqParam);
     castJuceParameter(apvts, ParameterID::filterReso, filterResoParam);
-//    castJuceParameter(apvts, ParameterID::filterEnv, filterEnvParam);
+    castJuceParameter(apvts, ParameterID::filterEnv, filterEnvParam);
     castJuceParameter(apvts, ParameterID::filterLFO, filterLFOParam);
 //    castJuceParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
-//    castJuceParameter(apvts, ParameterID::filterAttack, filterAttackParam);
-//    castJuceParameter(apvts, ParameterID::filterDecay, filterDecayParam);
-//    castJuceParameter(apvts, ParameterID::filterSustain, filterSustainParam);
-//    castJuceParameter(apvts, ParameterID::filterRelease, filterReleaseParam);
+    castJuceParameter(apvts, ParameterID::filterAttack, filterAttackParam);
+    castJuceParameter(apvts, ParameterID::filterDecay, filterDecayParam);
+    castJuceParameter(apvts, ParameterID::filterSustain, filterSustainParam);
+    castJuceParameter(apvts, ParameterID::filterRelease, filterReleaseParam);
     castJuceParameter(apvts, ParameterID::envAttack, envAttackParam);
     castJuceParameter(apvts, ParameterID::envDecay, envDecayParam);
     castJuceParameter(apvts, ParameterID::envSustain, envSustainParam);
@@ -441,21 +441,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
-//
-//    // Filter enveloppe amount
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterEnv,
-//                                                           "Filter Env",
-//                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
-//                                                           50.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-//
-    // Filter LFO amount
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterLFO,
-                                                           "LFO Depth (Filter Cutoff)",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-                                                           0.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-  
+
     // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
     // TODO: separate amplitude velocity and filter velocity
 //    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
@@ -466,34 +452,41 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //                                                            .withLabel("%")
 //                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
     
-//    // Filter attack
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterAttack,
-//                                                           "Filter Attack",
-//                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-//                                                           0.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-//
-//    // Filter decay
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterDecay,
-//                                                           "Filter Decay",
-//                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-//                                                           30.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-//
-//    // Filter sustain
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterSustain,
-//                                                           "Filter Sustain",
-//                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-//                                                           0.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-//
-//    // Filter release
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterRelease,
-//                                                           "Filter Release",
-//                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-//                                                           25.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+    // Filter attack
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterAttack,
+                                                           "Filter Attack",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
 
+    // Filter decay
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterDecay,
+                                                           "Filter Decay",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           30.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter sustain
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterSustain,
+                                                           "Filter Sustain",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter release
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterRelease,
+                                                           "Filter Release",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           25.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Filter enveloppe amount
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterEnv,
+                                                           "Filter Env Depth",
+                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
+                                                           50.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+    
     // Envelope attack
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envAttack,
                                                            "Env Attack",
@@ -541,12 +534,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //                                                            .withStringFromValueFunction(vibratoStringFromValue)));
 //
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
-                                                           "LFO Depth (Amplitude)",
+                                                           "LFO Depth (Pitch)",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f, 0.5f, false),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes()
                                                             .withLabel("%")
                                                             .withStringFromValueFunction(vibratoStringFromValue)));
+
+    // Filter LFO amount
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterLFO,
+                                                           "LFO Depth (Filter Cutoff)",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+  
 
     // Noise mix
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::noise,
@@ -697,4 +698,14 @@ void CppsynthAudioProcessor::update()
     // Filter LFO depth
     float filterLFO = filterLFOParam->get() / 100.0f;
     synth.filterLFODepth = 2.5f * filterLFO * filterLFO; // Parabolic curve from 0 to 2.5
+    
+    // Filter envelope
+    synth.filterAttack = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterAttackParam->get()));
+    synth.filterDecay = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterDecayParam->get()));
+    float filterSustain = filterSustainParam->get() / 100.0f;
+    synth.filterSustain = filterSustain * filterSustain; // square sustain to skew param
+    synth.filterRelease = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterReleaseParam->get()));
+
+    synth.filterEnvDepth = 0.06f * filterEnvParam->get(); // env depth between -6.0 and 6.0
+
 }

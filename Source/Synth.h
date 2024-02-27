@@ -25,10 +25,7 @@ class Synth
 public:
     float noiseMix;
     float oscMix;
-    float envAttack;
-    float envDecay;
-    float envSustain;
-    float envRelease;
+    float envAttack, envDecay, envSustain, envRelease;
     float tune;
     float osc2detune;
     float volumeTrim;
@@ -36,11 +33,11 @@ public:
     float lfoInc; // phase increment for LFO (between 0 and 2pi)
     float vibrato; // pitch LFO depth
     float modWheel;
-    float glideRate;
-    float glideBend;
-    float filterCutoff;
-    float filterQ;
+    float glideRate, glideBend;
+    float filterCutoff, filterQ;
     float filterLFODepth;
+    float filterAttack, filterDecay, filterSustain, filterRelease;
+    float filterEnvDepth;
     int numVoices;
     int glideMode;
     bool ignoreVelocity;
@@ -127,7 +124,7 @@ private:
     /**
      Updates the synth's LFO .
      */
-    void updateLfo();
+    void updateLFO();
     
     /**
      Updates the oscillators period if the voice changes it (while gliding, for example).
