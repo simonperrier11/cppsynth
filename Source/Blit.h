@@ -15,6 +15,7 @@
 
 /**
  Represents a bandlimited impulse train. Can be used to shape many waveforms.
+ This is inspired by Creating Synthesizer Plug-Ins with C++ and JUCE by Matthijs Hollemans, published by The Audio Programmer
  TODO: change this for wavetable synthesis
  */
 
@@ -49,19 +50,28 @@ public:
     float nextSample() override
     {
         float output = 0.0f;
+        /*
+         To generate the impulse train, sample between the peak of the last sinc function
+         and the middle point (half a period) then mirror shape until time for peak of next impulse
+         */
         
+        // Increment phase
         phase += increment;
         
+        // Start new impulse when phase reaches PI/4
         if (phase <= constants::PI_OVER_FOUR) {
-            // Apply modulation
-            float halfPeriod = (period / 2.0f) * modulation;
+            // Find midpoint (in samples) between previous sinc peak and the next one
+            float halfPeriod = (period / 2.0f) * modulation; // Apply modulation
+            phaseMax = std::floor(0.5f + halfPeriod) - 0.5f; // fudge halfway point to reduce aliasing
             
-            phaseMax = std::floor(0.5f + halfPeriod) - 0.5f;
+            // Calculate DC offset
             dc = 0.5f * amplitude / phaseMax;
+            
             phaseMax *= constants::PI;
             increment = phaseMax / halfPeriod;
             phase = -phase;
             
+            // TODO: not sure to fully understand this part, to review
             sin0 = amplitude * std::sin(phase);
             sin1 = amplitude * std::sin(phase - increment);
             dsin = 2.0f * std::cos(increment);
@@ -73,6 +83,8 @@ public:
             }
         }
         else {
+            // If phase counter goes past halfway point, set phase to max and invert increment
+            //  (output sinc function backwards)
             if (phase > phaseMax) {
                 phase = phaseMax + phaseMax - phase;
                 increment = -increment;
@@ -89,9 +101,10 @@ public:
     }
     
 private:
-    float phaseMax;
+    float phaseMax; // position of the midpoint between two impulse peaks
+    float dc; // DC offset
+    // Values for digital resonator approximation
     float sin0;
     float sin1;
     float dsin;
-    float dc;
 };
