@@ -12,6 +12,7 @@
 
 /**
  Represents an oscillator for the Synth. Every wave shape must inherit from this class.
+ TODO: change this for wavetable synthesis
  */
 class Oscillator
 {

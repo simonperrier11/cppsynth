@@ -10,9 +10,10 @@
 
 #pragma once
 
-// TODO: NoiseGenerator should be a parent class and have white/pink noise children
-
-// TODO: replace pseudo-rand this with JUCE built-in Random for white noise
+/**
+ Represents a simple white noise generator.
+ TODO: transform this into abstract class, write child classes for white/pink noise
+ */
 class NoiseGenerator
 {
 public:
@@ -23,13 +24,13 @@ public:
 
     float nextValue()
     {
-        // Generate the next integer pseudorandom number.
+        // Generate the next integer pseudorandom number
         noiseSeed = noiseSeed * 196314165 + 907633515;
 
-        // Convert to a signed value.
+        // Convert to a signed value
         int temp = int(noiseSeed >> 7) - 16777216;
 
-        // Convert to a floating-point number between -1.0 and 1.0.
+        // Convert to a floating-point number between -1.0 and 1.0
         return float(temp) / 16777216.0f;
     }
 

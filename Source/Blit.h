@@ -14,21 +14,25 @@
 #include "Constants.h"
 
 /**
- Represents a bandlimited impulse train. Can be used to shape many waveforms. */
+ Represents a bandlimited impulse train. Can be used to shape many waveforms.
+ TODO: change this for wavetable synthesis
+ */
 
 class Blit : public Oscillator
 {
 public:
-    // For this algorithm it makes more sense to think in terms of the period
-    // than the frequency, as the period gives you the number of samples between
-    // this impulse peak and the next.
+    /*
+     For this algorithm it makes more sense to think in terms of the period
+     than the frequency, as the period gives you the number of samples between
+     this impulse peak and the next
+     */
     float period;
     /*
      Since this is a multiplier for the period — as opposed to the frequency — a value of
      modulation larger than 1 will make the note lower, while a value smaller than 1 will make
-     the note higher.
+     the note higher
      */
-    float modulation = 1.0f; // modulation multiplier
+    float modulation = 1.0f;
     
     void reset() override
     {
@@ -42,7 +46,6 @@ public:
         dc = 0.0f;
     }
     
-    // TODO: change approach
     float nextSample() override
     {
         float output = 0.0f;

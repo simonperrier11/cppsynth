@@ -27,6 +27,8 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
                        )
 #endif
 {
+    // TODO: maybe add listener for specific parameter changes
+
     // Assign each identified parameter in the APVTS to a variable
     castJuceParameter(apvts, ParameterID::oscMix, oscMixParam);
     castJuceParameter(apvts, ParameterID::oscTune, oscTuneParam);
@@ -56,7 +58,6 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::polyMode, polyModeParam);
     
     // Add listener for parameter changes
-    // TODO: maybe add listener for specific parameter changes
     apvts.state.addListener(this);
 }
 
@@ -128,7 +129,6 @@ void CppsynthAudioProcessor::changeProgramName (int index, const juce::String& n
 {
 }
 
-//==============================================================================
 void CppsynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Allocate memory needed for Synth, then reset
@@ -147,7 +147,7 @@ void CppsynthAudioProcessor::reset()
 {
     synth.reset();
     
-    // Assign initial (without ramping it) and next target values to smoother
+    // Assign initial (without ramp) and next target values to smoother
     synth.outputLevelSmoother.setCurrentAndTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
 }
 
@@ -158,13 +158,7 @@ bool CppsynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
     juce::ignoreUnused (layouts);
     return true;
   #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
-    
-    // LRN this currently means that it will return false (not supported) unless
-    //  we are in mono or stereo
+    // Support mono and stereo buses layout only
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
      && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
@@ -262,12 +256,12 @@ void CppsynthAudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t da
 void CppsynthAudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
 {
     // Create array of 2 float* pointers, one for the left channel, the other
-    // for the right channel
+    // for the right channel; the synth will write in those
     float* outputBuffers[2] = { nullptr, nullptr };
     
     // Get a WRITE pointer to the audio data inside the AudioBuffer object (channel 0)
-    // Because the AudioBuffer is "split" and rendered based on the
-    // timestamps of the MIDI events, add bufferOffset
+    // Because the AudioBuffer is "split" and rendered based on the timestamps of the MIDI events,
+    //  add bufferOffset
     outputBuffers[0] = buffer.getWritePointer(0) + bufferOffset;
     
     if (getTotalNumOutputChannels() > 1) {
@@ -277,21 +271,19 @@ void CppsynthAudioProcessor::render(juce::AudioBuffer<float>& buffer, int sample
     synth.render(outputBuffers, sampleCount);
 }
 
-//==============================================================================
 bool CppsynthAudioProcessor::hasEditor() const
 {
-    return true; // (change this to false if you choose to not supply an editor)
+    return true;
 }
 
 juce::AudioProcessorEditor* CppsynthAudioProcessor::createEditor()
 {
-    // By referencing this (pluginprocessor), the GUI is automatically made using the layout
+    // By referencing *this (pluginprocessor), the GUI is automatically made using the layout
     auto editor = new juce::GenericAudioProcessorEditor(*this);
     editor->setSize(500, 800);
     return editor;
 }
 
-//==============================================================================
 void CppsynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // Save parameters as XML to memory block
@@ -309,10 +301,9 @@ void CppsynthAudioProcessor::setStateInformation (const void* data, int sizeInBy
     }
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
+    // This creates new instances of the plugin
     return new CppsynthAudioProcessor();
 }
 
@@ -370,7 +361,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::polyMode, 
                                                             "Polyphony",
                                                             juce::StringArray { "Mono", "Poly" },
-                                                            1));
+                                                            0));
     
     // LRN AudioParameterFloat has an ID, a label, a range, a default value, and an attribute object that
     //  describes the label for the units
@@ -411,7 +402,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideRate, 
                                                            "Glide Rate",
                                                            juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
-                                                           35.0f,
+                                                           0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // Glide Bend (add additionnal glide to notes played)
@@ -421,13 +412,47 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("semi")));
 
-//    // Filter cutoff frequency
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterFreq,
-//                                                           "Filter Freq",
-//                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f),
-//                                                           100.0f,
-//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
 
+//    // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
+//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
+//                                                           "Velocity",
+//                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 1.0f),
+//                                                           0.0f,
+//                                                           juce::AudioParameterFloatAttributes()
+//                                                            .withLabel("%")
+//                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
+    
+    // Envelope attack
+    // TODO: change to ms
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envAttack,
+                                                           "Env Attack",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Envelope decay
+    // TODO: change to ms
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envDecay,
+                                                           "Env Decay",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Envelope sustain
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envSustain,
+                                                           "Env Sustain",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           100.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Envelope release
+    // TODO: change to ms
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envRelease,
+                                                           "Env Release",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+    
     // Filter cutoff frequency
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterFreq,
                                                            "Filter Cutoff",
@@ -442,17 +467,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
-    // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
-    // TODO: separate amplitude velocity and filter velocity
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
-//                                                           "Velocity",
-//                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 1.0f),
-//                                                           0.0f,
-//                                                           juce::AudioParameterFloatAttributes()
-//                                                            .withLabel("%")
-//                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
-    
     // Filter attack
+    // TODO: change to ms
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterAttack,
                                                            "Filter Attack",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
@@ -460,79 +476,44 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // Filter decay
+    // TODO: change to ms
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterDecay,
                                                            "Filter Decay",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-                                                           30.0f,
+                                                           0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // Filter sustain
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterSustain,
                                                            "Filter Sustain",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-                                                           0.0f,
+                                                           100.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // Filter release
+    // TODO: change to ms
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterRelease,
                                                            "Filter Release",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-                                                           25.0f,
+                                                           0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // Filter enveloppe amount
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterEnv,
                                                            "Filter Env Depth",
                                                            juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
-                                                           50.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-    
-    // Envelope attack
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envAttack,
-                                                           "Env Attack",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-
-    // Envelope decay
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envDecay,
-                                                           "Env Decay",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-                                                           50.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-
-    // Envelope sustain
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envSustain,
-                                                           "Env Sustain",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-                                                           100.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-
-    // Envelope release
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envRelease,
-                                                           "Env Release",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-                                                           30.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // LFO rate
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lfoRate,
                                                            "LFO Rate",
                                                            juce::NormalisableRange<float>(),
-                                                           0.81f,
+                                                           0.0f,
                                                            juce::AudioParameterFloatAttributes()
                                                             .withLabel("Hz")
                                                             .withStringFromValueFunction(lfoRateStringFromValue)));
 
-    // Vibrato or PWM amount
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
-//                                                           "Vibrato/PWM",
-//                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
-//                                                           0.0f,
-//                                                           juce::AudioParameterFloatAttributes()
-//                                                            .withLabel("%")
-//                                                            .withStringFromValueFunction(vibratoStringFromValue)));
-//
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
                                                            "LFO Depth (Pitch)",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f, 0.5f, false),
@@ -548,7 +529,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
   
-
     // Noise mix
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::noise,
                                                            "Noise Mix",
@@ -594,7 +574,7 @@ void CppsynthAudioProcessor::update()
     // Lower update rate for some stuff that does not need to be calculated as frequently
     const float inverseUpdateRate = inverseSampleRate * constants::LOWER_UPDATE_RATE_MAX_VALUE;
     
-    // TODO: not sure about this approach... Maybe implement env times directly in ms (p. 178)
+    // TODO: not sure about this approach; implement env times directly in ms
     // LRN -> is like ., except it dereferences a pointer first; foo.bar() calls method bar() on object foo,
     //  foo->bar calls method bar on the object pointed to by pointer foo
     /*
@@ -631,18 +611,15 @@ void CppsynthAudioProcessor::update()
     float semi = oscTuneParam->get();
     float cent = oscFineParam->get();
     // To calculate pitch of any note with starting pitch, we use pitch * 2^(N/12)
-    // where N is the number of fractionnal semitones
-    // This is the 2^(N/12) part
-    // TODO: book p. 183
-    synth.osc2detune = std::pow(2.0f, (-semi - 0.01f * cent) / 12.0f);
+    //  where N is the number of fractionnal semitones
+    // add tiny little offset to prevent both osc from cancelling each other
+    synth.osc2detune = std::pow(2.0f, (-semi - 0.01f * cent) / 12.0f) + 0.00001;
     
     // Tuning
     float octave = octaveParam->get();
     float tuning = tuningParam->get();
-    // TODO: book p. 186
-    float tuneInSemitones = -36.3763f - 12.0f * octave - tuning / 100.0f;
-    synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemitones);
-    
+    synth.tune = octave * 12.0f + tuning / 100.0f;
+        
     // Voices
     synth.numVoices = (polyModeParam->getIndex() == 0 ? 1 : constants::MAX_VOICES);
     
@@ -655,10 +632,11 @@ void CppsynthAudioProcessor::update()
     synth.filterQ = std::exp(3.0f * filterReso);
 
     // Volume
-    // TODO: book p. 215, p. 244 for reso
+    // TODO: not sure about this, see for change (215 244)
     synth.volumeTrim = 0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * (1.5f - 0.5f * filterReso);
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
     
+    // TODO: add velocity sensitivity for amplitude and filter
     // Filter velocity
 //    float filterVelocity = filterVelocityParam->get();
 //    if (filterVelocity < -90.0f) {
@@ -700,6 +678,7 @@ void CppsynthAudioProcessor::update()
     synth.filterLFODepth = 2.5f * filterLFO * filterLFO; // Parabolic curve from 0 to 2.5
     
     // Filter envelope
+    // TODO: not sure about this approach; implement filter env times directly in ms
     synth.filterAttack = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterAttackParam->get()));
     synth.filterDecay = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterDecayParam->get()));
     float filterSustain = filterSustainParam->get() / 100.0f;
@@ -707,5 +686,4 @@ void CppsynthAudioProcessor::update()
     synth.filterRelease = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterReleaseParam->get()));
 
     synth.filterEnvDepth = 0.06f * filterEnvParam->get(); // env depth between -6.0 and 6.0
-
 }

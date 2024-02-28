@@ -33,7 +33,8 @@ public:
     float lfoInc; // phase increment for LFO (between 0 and 2pi)
     float vibrato; // pitch LFO depth
     float modWheel;
-    float glideRate, glideBend;
+    float glideRate; // speed of glide
+    float glideBend; // adds a glide up or down before new notes
     float filterCutoff, filterQ;
     float filterLFODepth;
     float filterAttack, filterDecay, filterSustain, filterRelease;
@@ -103,12 +104,12 @@ private:
     /**
      Calculates and returns the period given a MIDI note.
      */
-    float calcPeriod(int v, int note) const;
+    float calcPeriod(int voiceIndex, int note) const;
     
     /**
      Starts a voice.
      */
-    void startVoice(int v, int note, int velocity);
+    void startVoice(int voiceIndex, int note, int velocity);
     
     /**
      When playing legato in mono mode, this is used when pressing a new note.

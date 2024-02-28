@@ -47,7 +47,6 @@ namespace ParameterID
     #undef PARAMETER_ID
 }
 
-//==============================================================================
 /**
  Represents the core processor of the plugin. The CppsynthAudioProcessor class extends the juce::AudioProcessor,
  which contains all audio processing classes and functions.
@@ -58,12 +57,10 @@ public:
     // LRN {} after declaration does value initialization (call to constructor here)
     juce::AudioProcessorValueTreeState apvts { *this, nullptr, "Parameters", createParameterLayout() };
     
-    //==============================================================================
     // LRN Constructor
     CppsynthAudioProcessor();
     ~CppsynthAudioProcessor() override;
 
-    //==============================================================================
     // LRN Tells plug-in about sample rate, buffer size, allocates resources
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     
@@ -82,11 +79,9 @@ public:
     //  it's the object itself
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
-    //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
-    //==============================================================================
     // LRN Info that will be queried by the host
     const juce::String getName() const override;
 
@@ -95,14 +90,12 @@ public:
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
 
-    //==============================================================================
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram (int index) override;
     const juce::String getProgramName (int index) override;
     void changeProgramName (int index, const juce::String& newName) override;
 
-    //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
@@ -141,7 +134,7 @@ private:
     std::atomic<bool> parametersChanged { false };
 
     /**
-     Instanciate all audio parameters objects.
+     Instanciate all audio parameters objects into the layout.
      */
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     

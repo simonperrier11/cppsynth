@@ -25,7 +25,7 @@ struct Voice
     int note;
     int velocity;
     float saw;
-    float period; // TODO: the synth used in the book sets its pitch by its period, but I might want to change this
+    float period; // period = 1 / freq (see Blit.h for why period is used)
     float target; // target for glide
     float glideRate; // copy of synth's glide rate
     float filterCutoff;
@@ -71,7 +71,7 @@ struct Voice
         float sample1 = osc1.nextSample();
         float sample2 = osc2.nextSample();
         
-        // Substract osc2 from osc1, and multiply by saw with attenation
+        // Substract osc2 from osc1, and multiply by saw with attenuation
         //  to create shape
         saw = saw * 0.997f + (sample1 - sample2);
         

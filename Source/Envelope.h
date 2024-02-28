@@ -45,9 +45,8 @@ public:
      */
     void attack()
     {
-        // Give extra boost so that the initial envelope is always greater than silence
-        // The += assignement enables legato-style playing
-        //  (continue envelope instead of restarting it)
+        // Give extra boost (silence tresh) so that the initial envelope is always greater than silence
+        // The += assignement enables legato-style playing continue envelope instead of restarting it)
         level += constants::SILENCE_TRESHOLD + constants::SILENCE_TRESHOLD;
         target = constants::ENV_ATK_TARGET;
         multiplier = attackMultiplier;

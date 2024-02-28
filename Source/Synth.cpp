@@ -35,13 +35,15 @@ void Synth::deallocateResources()
 
 void Synth::reset()
 {
+    // Reset voices
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         voices[v].reset();
     }
     
+    // Reset noise generator
     noiseGen.reset();
     
-    // Default values for sytnh
+    // Reset default values for sytnh
     pitchBend = 1.0f;
     sustainPressed = false;
     outputLevelSmoother.reset(sampleRate, 0.05); // 50 msec
@@ -57,18 +59,21 @@ void Synth::render(float** outputBuffers, int sampleCount)
     float* outputBufferLeft = outputBuffers[0];
     float* outputBufferRight = outputBuffers[1];
 
-    // Update some of the synth's params at each render to catch any change
-    // to any voices that are currently playing
+    // Update some of the synth's currently playing voices to catch param changes
     // TODO: general tune and finetune should also always affect playing notes
 
-    // Pitch and amplitude of OSC2
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         Voice& voice = voices[v];
         
         if (voice.env.isActive()) {
+            // Glide might affect current period value
             updatePeriod(voice);
             voice.glideRate = glideRate;
+            
+            // OSC2 amplitude
             voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
+            
+            // Filter values
             voice.filterCutoff = filterCutoff;
             voice.filterQ = filterQ;
             voice.filterEnvDepth = filterEnvDepth;
@@ -81,16 +86,17 @@ void Synth::render(float** outputBuffers, int sampleCount)
         
         // Get next noise value
         const float noise = noiseGen.nextValue() * noiseMix;
+        
         float outputLeft = 0.0f;
         float outputRight = 0.0f;
-        
-        // TODO: stereophony p.196
 
         for (int v = 0; v < constants::MAX_VOICES; ++v) {
             Voice& voice = voices[v];
             
             if (voice.env.isActive()) {
+                // Render voice with noise mixed in
                 float output = voice.render(noise);
+                
                 outputLeft += output;
                 outputRight += output;
             }
@@ -103,6 +109,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
 
         // Write value in left and right buffers
         if (outputBufferRight != nullptr) {
+            // TODO: implement stereophony
             outputBufferLeft[sample] = outputLeft;
             outputBufferRight[sample] = outputRight;
         }
@@ -122,7 +129,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
         }
     }
 
-    // TODO: remove when done with dev, but add back when developing features!
+    // TODO: remove when done with dev, but add back when developing features
+    // Protect buffers from loudness
     loudnessProtectBuffer(outputBufferLeft, sampleCount);
     loudnessProtectBuffer(outputBufferRight, sampleCount);
 }
@@ -162,17 +170,17 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
         }
         case 0xE0: {
             // Range of pitch bend is 2 semitones up and down
-            // TODO: book p.189
+            // TODO: not sure about this, see for change (189)
             pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192));
             break;
         }
     }
 }
 
-void Synth::startVoice(int v, int note, int velocity) {
-    float period = calcPeriod(v, note);
+void Synth::startVoice(int voiceIndex, int note, int velocity) {
+    float period = calcPeriod(voiceIndex, note);
 
-    Voice& voice = voices[v];
+    Voice& voice = voices[voiceIndex];
     voice.target = period;
     
     // Calculate note distance for glide
@@ -184,7 +192,12 @@ void Synth::startVoice(int v, int note, int velocity) {
         }
     }
     
-    // TODO: book p.227
+    /*
+     Set voice.period to the period to glide from; this is necessary because in polyphony mode,
+     the voice may not have the period of the most recent note that was played, if that note was
+     handled by another voice.
+     Note : 2^N/12 == 1.059463094359^N, where N is in semitones
+     .*/
     voice.period = period * std::pow(1.059463094359f, float(noteDistance) - glideBend);
     
     // Limit period to small value
@@ -262,7 +275,6 @@ void Synth::noteOn(int note, int velocity)
 void Synth::noteOff(int note)
 {
     // TODO: if noteOff velocity is to be implemented, use here
-
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         if (voices[v].note == note) {
             if (sustainPressed) {
@@ -276,10 +288,12 @@ void Synth::noteOff(int note)
     }
 }
 
-float Synth::calcPeriod(int v, int note) const
+float Synth::calcPeriod(int voiceIndex, int note) const
 {
-    // TODO: book p.186, p.199 for detune
-    float period = tune * std::exp(-0.05776226505f * (float(note) + (constants::ANALOG_DRIFT * float(v))));
+    // Add small analog drift to frequency
+    float freq = 440.0f * std::exp2((float(note - 69 + (constants::ANALOG_DRIFT * float(voiceIndex))) + tune) / 12.0f);
+    float period = sampleRate / freq;
+    
     // Ensure that the period or detuned pitch of OSC2 is at least 6 samples long,
     // else we double it. This is because the BLIT based oscillator may not work
     // too well if the perdio is too small
