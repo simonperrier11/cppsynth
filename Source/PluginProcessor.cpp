@@ -553,7 +553,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::outputLevel,
                                                            "Output Level",
                                                            juce::NormalisableRange<float>(-24.0f, 6.0f, 0.1f),
-                                                           0.0f,
+                                                           -3.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("dB")));
     
     return layout;
@@ -668,6 +668,7 @@ void CppsynthAudioProcessor::update()
         synth.glideRate = 1.0f; // No glide
     }
     else {
+        // TODO: change glide rate to ms instead
         synth.glideRate = 1.0f - std::exp(-inverseUpdateRate * std::exp(6.0f - 0.07f * glideRate));
     }
     
