@@ -423,20 +423,18 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
     
     // Envelope attack
-    // TODO: change to ms
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envAttack,
                                                            "Env Attack",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           juce::NormalisableRange<float>(0.0f, 10000.0f, 0.01f, 0.3f),
                                                            0.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+                                                           "ms"));
 
     // Envelope decay
-    // TODO: change to ms
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envDecay,
                                                            "Env Decay",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           juce::NormalisableRange<float>(0.0f, 10000.0f, 0.01f, 0.3f),
                                                            0.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+                                                           "ms"));
 
     // Envelope sustain
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envSustain,
@@ -446,13 +444,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // Envelope release
-    // TODO: change to ms
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envRelease,
                                                            "Env Release",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           juce::NormalisableRange<float>(0.0f, 10000.0f, 0.01f, 0.3f),
                                                            0.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-    
+                                                           "ms"));
+
     // Filter cutoff frequency
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterFreq,
                                                            "Filter Cutoff",
@@ -574,29 +571,32 @@ void CppsynthAudioProcessor::update()
     // Lower update rate for some stuff that does not need to be calculated as frequently
     const float inverseUpdateRate = inverseSampleRate * constants::LOWER_UPDATE_RATE_MAX_VALUE;
     
-    // TODO: not sure about this approach; implement env times directly in ms
     // LRN -> is like ., except it dereferences a pointer first; foo.bar() calls method bar() on object foo,
     //  foo->bar calls method bar on the object pointed to by pointer foo
-    /*
-     slider at 0% = 0.0376 seconds
-     slider at 25% = 0.2454 seconds
-     slider at 50% = 1.601 seconds
-     slider at 75% = 10.437 seconds
-     slider at 100% = 68.056 seconds
-     */
-    synth.envAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envAttackParam->get()));
-    synth.envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envDecayParam->get()));
+    // Envelope attack
+    float envAttackTimeMs = envAttackParam->get();
+    float envAttackSamples = sampleRate * envAttackTimeMs / 100;
+    // The multiplier for the one-pole filter is passed as the envAttack param for the synth
+    synth.envAttack = std::exp(std::log(constants::SILENCE_TRESHOLD) / envAttackSamples);
+    
+    // Sutain is simply percentage between 0.0 and 1.0
     synth.envSustain = envSustainParam->get() / 100.0f;
     
-    // Enveloppe release
-    float envRelease = envReleaseParam->get();
-    if (envRelease < 1.0f) {
-        // Extra fast release to prevent pop
-        // Fade out over 32 samples since (0.75)^32 = 0.0001 = silenceTreshold
-        synth.envRelease = 0.75f;
+    // Envelope decay
+    float envDecayTimeMs = envDecayParam->get();
+    float envDecaySamples = sampleRate * envDecayTimeMs / 1000;
+    synth.envDecay = std::exp(std::log(constants::SILENCE_TRESHOLD) / envDecaySamples);
+    
+    // Envelope release
+    float envReleaseTimeMs = envReleaseParam->get();
+    float envReleaseSamples = sampleRate * envReleaseTimeMs / 1000;
+    
+    if (envReleaseSamples < 0.1f) {
+        // Change to extra fast release to prevent pop
+        envReleaseSamples = 0.1f;
     }
     else {
-        synth.envRelease = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envReleaseParam->get()));
+        synth.envRelease = std::exp(std::log(constants::SILENCE_TRESHOLD) / envReleaseSamples);
     }
     
     // Noise mix
