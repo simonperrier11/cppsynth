@@ -39,6 +39,10 @@ public:
     float filterLFODepth;
     float filterAttack, filterDecay, filterSustain, filterRelease;
     float filterEnvDepth;
+    float hpfCutoff, hpfQ;
+    float hpfLFODepth;
+    float hpfAttack, hpfDecay, hpfSustain, hpfRelease;
+    float hpfEnvDepth;
     int numVoices;
     int glideMode;
     bool ignoreVelocity;
@@ -83,7 +87,9 @@ private:
     float sampleRate;
     float pitchBend;
     float lfo; // current phase of LFO sine wave
-    float filterZip; // will hold the smoothed version of filterMod value (to remove zipper noise)
+    // will hold the smoothed versions of filters Mod value (to remove zipper noise)
+    float filterZip;
+    float hpfZip;
     bool sustainPressed;
     // LRN allocate arr size directly in std::array<Type, Size> arr;
     std::array<Voice, constants::MAX_VOICES> voices;

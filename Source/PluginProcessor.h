@@ -32,6 +32,15 @@ namespace ParameterID
     PARAMETER_ID(filterDecay)
     PARAMETER_ID(filterSustain)
     PARAMETER_ID(filterRelease)
+    PARAMETER_ID(hpfFreq)
+    PARAMETER_ID(hpfReso)
+    PARAMETER_ID(hpfEnv)
+    PARAMETER_ID(hpfLFO)
+    PARAMETER_ID(hpfVelocity)
+    PARAMETER_ID(hpfAttack)
+    PARAMETER_ID(hpfDecay)
+    PARAMETER_ID(hpfSustain)
+    PARAMETER_ID(hpfRelease)
     PARAMETER_ID(envAttack)
     PARAMETER_ID(envDecay)
     PARAMETER_ID(envSustain)
@@ -118,6 +127,15 @@ private:
     juce::AudioParameterFloat* filterDecayParam;
     juce::AudioParameterFloat* filterSustainParam;
     juce::AudioParameterFloat* filterReleaseParam;
+    juce::AudioParameterFloat* hpfFreqParam;
+    juce::AudioParameterFloat* hpfResoParam;
+    juce::AudioParameterFloat* hpfEnvParam;
+    juce::AudioParameterFloat* hpfLFOParam;
+    juce::AudioParameterFloat* hpfVelocityParam;
+    juce::AudioParameterFloat* hpfAttackParam;
+    juce::AudioParameterFloat* hpfDecayParam;
+    juce::AudioParameterFloat* hpfSustainParam;
+    juce::AudioParameterFloat* hpfReleaseParam;
     juce::AudioParameterFloat* envAttackParam;
     juce::AudioParameterFloat* envDecayParam;
     juce::AudioParameterFloat* envSustainParam;

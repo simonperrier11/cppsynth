@@ -45,6 +45,15 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::filterDecay, filterDecayParam);
     castJuceParameter(apvts, ParameterID::filterSustain, filterSustainParam);
     castJuceParameter(apvts, ParameterID::filterRelease, filterReleaseParam);
+    castJuceParameter(apvts, ParameterID::hpfFreq, hpfFreqParam);
+    castJuceParameter(apvts, ParameterID::hpfReso, hpfResoParam);
+    castJuceParameter(apvts, ParameterID::hpfEnv, hpfEnvParam);
+    castJuceParameter(apvts, ParameterID::hpfLFO, hpfLFOParam);
+//    castJuceParameter(apvts, ParameterID::hpfVelocity, hpfVelocityParam);
+    castJuceParameter(apvts, ParameterID::hpfAttack, hpfAttackParam);
+    castJuceParameter(apvts, ParameterID::hpfDecay, hpfDecayParam);
+    castJuceParameter(apvts, ParameterID::hpfSustain, hpfSustainParam);
+    castJuceParameter(apvts, ParameterID::hpfRelease, hpfReleaseParam);
     castJuceParameter(apvts, ParameterID::envAttack, envAttackParam);
     castJuceParameter(apvts, ParameterID::envDecay, envDecayParam);
     castJuceParameter(apvts, ParameterID::envSustain, envSustainParam);
@@ -450,54 +459,100 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            0.0f,
                                                            "ms"));
 
-    // Filter cutoff frequency
+    // Low-pass filter cutoff frequency
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterFreq,
-                                                           "Filter Cutoff",
+                                                           "LPF Cutoff",
                                                            juce::NormalisableRange<float>(20.0f, 20000.0f, 0.1f, 0.5f, false),
                                                            20000.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("Hz")));
 
-    // Filter resonance
+    // LPF resonance
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterReso,
-                                                           "Filter Q",
+                                                           "LPF Q",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
-    // Filter attack
-    // TODO: change to ms
+    // LPF envelope attack
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterAttack,
-                                                           "Filter Attack",
+                                                           "LPF Attack",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
-    // Filter decay
-    // TODO: change to ms
+    // LPF ENV decay
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterDecay,
-                                                           "Filter Decay",
+                                                           "LPF Decay",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
-    // Filter sustain
+    // LPF ENV sustain
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterSustain,
-                                                           "Filter Sustain",
+                                                           "LPF Sustain",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            100.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
-    // Filter release
-    // TODO: change to ms
+    // LPF ENV release
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterRelease,
-                                                           "Filter Release",
+                                                           "LPF Release",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
-    // Filter enveloppe amount
+    // LPF ENV amount
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterEnv,
-                                                           "Filter Env Depth",
+                                                           "LPF Env Depth",
+                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+    
+    // High-pass filter cutoff frequency
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::hpfFreq,
+                                                           "HPF Cutoff",
+                                                           juce::NormalisableRange<float>(20.0f, 20000.0f, 0.1f, 0.5f, false),
+                                                           20000.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("Hz")));
+
+    // HPF resonance
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::hpfReso,
+                                                           "HPF Q",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // HPF envelope attack
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::hpfAttack,
+                                                           "HPF Attack",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // HPF ENV decay
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::hpfDecay,
+                                                           "HPF Decay",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // HPF ENV sustain
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::hpfSustain,
+                                                           "HPF Sustain",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           100.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // HPF ENV release
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::hpfRelease,
+                                                           "HPF Release",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // HPF ENV amount
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::hpfEnv,
+                                                           "HPF Env Depth",
                                                            juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
@@ -511,6 +566,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                             .withLabel("Hz")
                                                             .withStringFromValueFunction(lfoRateStringFromValue)));
 
+    // LFO depth for pitch
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::vibrato,
                                                            "LFO Depth (Pitch)",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 0.1f, 0.5f, false),
@@ -521,7 +577,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 
     // Filter LFO amount
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterLFO,
-                                                           "LFO Depth (Filter Cutoff)",
+                                                           "LFO Depth (LPF Cutoff)",
+                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+    
+    // Filter LFO amount
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::hpfLFO,
+                                                           "LFO Depth (HPF Cutoff)",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));

@@ -12,7 +12,7 @@
 #include "Constants.h"
 #include "Blit.h"
 #include "Envelope.h"
-#include "Filter.h"
+#include "StateVariableFilter.h"
 
 // LRN we can use a struct instead of a class when we don't need private/protected
 //  and other inheritance shenanigans (class defaults to private, struct to public)
@@ -36,7 +36,7 @@ struct Voice
     Envelope filterEnv;
     Blit osc1;
     Blit osc2;
-    Filter filter;
+    StateVariableFilter filter;
     
     /**
      Resets the state of the voice instance and its components.
