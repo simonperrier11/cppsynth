@@ -21,35 +21,13 @@ public:
     /**
      Tick function of the filter.
      */
-    void updateCoefficiants(float cutoff, float q)
-    {
-        g = std::tan(constants::PI * cutoff / sampleRate);
-        k = 1.0f / q;
-        a1 = 1.0f / (1.0f + g * (g + k));
-        a2 = g * a1;
-        a3 = g * a2;
-    }
-    
+    virtual void updateCoefficiants(float cutoff, float q) = 0;
+        
     /**
      Reinitializes the filter to its default state.
      */
-    void reset()
-    {
-        g = 0.0f;
-        k = 0.0f;
-        a1 = 0.0f;
-        a2 = 0.0f;
-        a3 = 0.0f;
-
-        ic1eq = 0.0f;
-        ic2eq = 0.0f;
-        
-        // TODO: ability to change these to change filter type
-        m0 = 0;
-        m1 = 0;
-        m2 = 1;
-    }
-        
+    virtual void reset() = 0;
+    
     /**
      Outputs the filter value for the input sample.
      */
@@ -66,7 +44,7 @@ public:
         return m0 * v0 + m1 * v1 + m2 * v2;
     }
     
-private:
+protected:
     float g, k, a1, a2, a3; // filter coefficiants
     float ic1eq, ic2eq; // internal state for current sample
     float m0, m1, m2; // coefficiants that determine which type of filter is used (low, high, notch, etc.)

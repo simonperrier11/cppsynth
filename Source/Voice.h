@@ -12,7 +12,8 @@
 #include "Constants.h"
 #include "Blit.h"
 #include "Envelope.h"
-#include "StateVariableFilter.h"
+#include "LowPassFilter.h"
+#include "HighPassFilter.h"
 
 // LRN we can use a struct instead of a class when we don't need private/protected
 //  and other inheritance shenanigans (class defaults to private, struct to public)
@@ -28,15 +29,27 @@ struct Voice
     float period; // period = 1 / freq (see Blit.h for why period is used)
     float target; // target for glide
     float glideRate; // copy of synth's glide rate
+    
+    // Filters
+    LowPassFilter filter;
+    HighPassFilter hpf;
     float filterCutoff;
+    float hpfCutoff;
     float filterQ;
+    float hpfQ;
     float filterMod;
+    float hpfMod;
     float filterEnvDepth;
-    Envelope env;
-    Envelope filterEnv;
+    float hpfEnvDepth;
+    
+    // Oscillators
     Blit osc1;
     Blit osc2;
-    StateVariableFilter filter;
+
+    // Envelopes
+    Envelope env;
+    Envelope filterEnv;
+    Envelope hpfEnv;
     
     /**
      Resets the state of the voice instance and its components.
@@ -51,6 +64,9 @@ struct Voice
         env.reset();
         filter.reset();
         filterEnv.reset();
+        
+        hpf.reset();
+        hpfEnv.reset();
     }
     
     /**
@@ -60,6 +76,8 @@ struct Voice
     {
         env.release();
         filterEnv.release();
+        
+        hpfEnv.release();
     }
     
     /**
@@ -78,8 +96,9 @@ struct Voice
         // Mix with input (noise)
         float output = saw + input;
         
-        // Apply filter
+        // Apply filter in series; first LPF, then HPF
         output = filter.render(output);
+        output = hpf.render(output);
         
         // Apply enveloppe
         float envelope = env.nextValue();
@@ -94,12 +113,20 @@ struct Voice
         // Update period with glide rate
         period += glideRate * (target - period);
         
+        // LPF
         float filterEnvMod = filterEnv.nextValue() * filterEnvDepth;
 
         // Update coefficiants of filter with modulation, if any
         float modulatedCutoff = filterCutoff * std::exp(filterMod + filterEnvMod); // TODO: envmod outside of exp
         modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f); // clamp to prevent crazy values
         filter.updateCoefficiants(modulatedCutoff, filterQ);
+        
+        // HPF 
+        float hpfEnvMod = hpfEnv.nextValue() * hpfEnvDepth;
+        
+        float modulatedHpfCutoff = hpfCutoff * std::exp(hpfMod + hpfEnvMod);
+        modulatedHpfCutoff = std::clamp(modulatedHpfCutoff, 30.0f, 20000.0f);
+        hpf.updateCoefficiants(modulatedHpfCutoff, hpfQ);
     }
 };
 

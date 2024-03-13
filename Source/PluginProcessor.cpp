@@ -511,8 +511,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     // High-pass filter cutoff frequency
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::hpfFreq,
                                                            "HPF Cutoff",
-                                                           juce::NormalisableRange<float>(20.0f, 20000.0f, 0.1f, 0.5f, false),
-                                                           20000.0f,
+                                                           juce::NormalisableRange<float>(0.0f, 20000.0f, 0.1f, 0.5f, false),
+                                                           0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("Hz")));
 
     // HPF resonance
@@ -639,6 +639,7 @@ void CppsynthAudioProcessor::update()
     // Envelope attack
     float envAttackTimeMs = envAttackParam->get();
     float envAttackSamples = sampleRate * envAttackTimeMs / 100;
+
     // The multiplier for the one-pole filter is passed as the envAttack param for the synth
     synth.envAttack = std::exp(std::log(constants::SILENCE_TRESHOLD) / envAttackSamples);
     
@@ -688,14 +689,19 @@ void CppsynthAudioProcessor::update()
     
     // Filter cutoff frequency
     synth.filterCutoff = filterFreqParam->get();
+    synth.hpfCutoff = hpfFreqParam->get();
     
     // Filter Q
     // create an exponential curve that starts at filterQ = 1 and goes up to filterQ = 20
     float filterReso = filterResoParam->get() / 100.0f;
     synth.filterQ = std::exp(3.0f * filterReso);
+    
+    float hpfReso = hpfResoParam->get() / 100.0f;
+    synth.hpfQ = std::exp(3.0f * hpfReso);
 
     // Volume
     // TODO: not sure about this, see for change (215 244)
+    // TODO: reso of HPF
     synth.volumeTrim = 0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * (1.5f - 0.5f * filterReso);
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
     
@@ -741,6 +747,9 @@ void CppsynthAudioProcessor::update()
     float filterLFO = filterLFOParam->get() / 100.0f;
     synth.filterLFODepth = 2.5f * filterLFO * filterLFO; // Parabolic curve from 0 to 2.5
     
+    float hpfLFO = hpfLFOParam->get() / 100.0f;
+    synth.hpfLFODepth = 2.5f * hpfLFO * hpfLFO;
+    
     // Filter envelope
     // TODO: not sure about this approach; implement filter env times directly in ms
     synth.filterAttack = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterAttackParam->get()));
@@ -750,4 +759,12 @@ void CppsynthAudioProcessor::update()
     synth.filterRelease = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterReleaseParam->get()));
 
     synth.filterEnvDepth = 0.06f * filterEnvParam->get(); // env depth between -6.0 and 6.0
+    
+    synth.hpfAttack = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * hpfAttackParam->get()));
+    synth.hpfDecay = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * hpfDecayParam->get()));
+    float hpfSustain = hpfSustainParam->get() / 100.0f;
+    synth.hpfSustain = hpfSustain * hpfSustain; // square sustain to skew param
+    synth.hpfRelease = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * hpfReleaseParam->get()));
+
+    synth.hpfEnvDepth = 0.06f * hpfEnvParam->get(); // env depth between -6.0 and 6.0
 }
