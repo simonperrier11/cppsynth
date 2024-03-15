@@ -62,18 +62,15 @@ void Synth::render(float** outputBuffers, int sampleCount)
     float* outputBufferRight = outputBuffers[1];
 
     // Update some of the synth's currently playing voices to catch param changes
-    // TODO: general tune and finetune should also always affect playing notes
-
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         Voice& voice = voices[v];
         
         if (voice.env.isActive()) {
+            // TODO: general tune and finetune, OSC and noise levels here
+
             // Glide might affect current period value
             updatePeriod(voice);
             voice.glideRate = glideRate;
-            
-            // OSC2 amplitude
-            voice.osc2.amplitude = voice.osc1.amplitude * oscMix;
             
             // Filter values
             voice.filterCutoff = filterCutoff;
@@ -91,7 +88,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         updateLFO();
         
         // Get next noise value
-        const float noise = noiseGen.nextValue() * noiseMix;
+        const float noise = noiseGen.nextValue() * noiseLevel;
         
         float outputLeft = 0.0f;
         float outputRight = 0.0f;
@@ -221,6 +218,12 @@ void Synth::startVoice(int voiceIndex, int note, int velocity) {
     // Custom curve with dynamic range -23dB - 0.72dB
     float velocityCurve = 0.004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
     voice.osc1.amplitude = velocityCurve * volumeTrim;
+    voice.osc2.amplitude = voice.osc1.amplitude;
+    
+    // Apply levels
+    // TODO: apply change when moving slider
+    voice.osc1.amplitude = voice.osc1.amplitude * osc1Level;
+    voice.osc2.amplitude = voice.osc2.amplitude * osc2Level;
 
     // LRN & to dereference voice.env to access it just by env variable
     // Envelope settings + trigger envelope
@@ -407,6 +410,7 @@ void Synth::updateLFO()
 
 void Synth::updatePeriod(Voice &voice)
 {
+    // TODO: master tune
     voice.osc1.period = voice.period * pitchBend;
     voice.osc2.period = voice.osc1.period * osc2detune;
 }

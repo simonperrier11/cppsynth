@@ -17,7 +17,9 @@ namespace ParameterID
 {
     #define PARAMETER_ID(str) const juce::ParameterID str(#str, 1);
 
-    PARAMETER_ID(oscMix)
+    PARAMETER_ID(osc1Level)
+    PARAMETER_ID(osc2Level)
+    PARAMETER_ID(noiseLevel)
     PARAMETER_ID(oscTune)
     PARAMETER_ID(oscFine)
     PARAMETER_ID(glideMode)
@@ -47,7 +49,6 @@ namespace ParameterID
     PARAMETER_ID(envRelease)
     PARAMETER_ID(lfoRate)
     PARAMETER_ID(vibrato)
-    PARAMETER_ID(noise)
     PARAMETER_ID(octave)
     PARAMETER_ID(tuning)
     PARAMETER_ID(outputLevel)
@@ -112,7 +113,9 @@ private:
     Synth synth;
     
     // Parameters accessible to host
-    juce::AudioParameterFloat* oscMixParam;
+    juce::AudioParameterFloat* osc1LevelParam;
+    juce::AudioParameterFloat* osc2LevelParam;
+    juce::AudioParameterFloat* noiseLevelParam;
     juce::AudioParameterFloat* oscTuneParam;
     juce::AudioParameterFloat* oscFineParam;
     juce::AudioParameterChoice* glideModeParam;
@@ -142,7 +145,6 @@ private:
     juce::AudioParameterFloat* envReleaseParam;
     juce::AudioParameterFloat* lfoRateParam;
     juce::AudioParameterFloat* vibratoParam;
-    juce::AudioParameterFloat* noiseParam;
     juce::AudioParameterFloat* octaveParam;
     juce::AudioParameterFloat* tuningParam;
     juce::AudioParameterFloat* outputLevelParam;

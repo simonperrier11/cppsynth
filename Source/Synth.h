@@ -23,8 +23,7 @@
 class Synth
 {
 public:
-    float noiseMix;
-    float oscMix;
+    float osc1Level, osc2Level, noiseLevel;
     float envAttack, envDecay, envSustain, envRelease;
     float tune;
     float osc2detune;

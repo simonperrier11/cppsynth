@@ -30,7 +30,9 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     // TODO: maybe add listener for specific parameter changes
 
     // Assign each identified parameter in the APVTS to a variable
-    castJuceParameter(apvts, ParameterID::oscMix, oscMixParam);
+    castJuceParameter(apvts, ParameterID::osc1Level, osc1LevelParam);
+    castJuceParameter(apvts, ParameterID::osc2Level, osc2LevelParam);
+    castJuceParameter(apvts, ParameterID::noiseLevel, noiseLevelParam);
     castJuceParameter(apvts, ParameterID::oscTune, oscTuneParam);
     castJuceParameter(apvts, ParameterID::oscFine, oscFineParam);
     castJuceParameter(apvts, ParameterID::glideMode, glideModeParam);
@@ -60,7 +62,6 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::envRelease, envReleaseParam);
     castJuceParameter(apvts, ParameterID::lfoRate, lfoRateParam);
     castJuceParameter(apvts, ParameterID::vibrato, vibratoParam);
-    castJuceParameter(apvts, ParameterID::noise, noiseParam);
     castJuceParameter(apvts, ParameterID::octave, octaveParam);
     castJuceParameter(apvts, ParameterID::tuning, tuningParam);
     castJuceParameter(apvts, ParameterID::outputLevel, outputLevelParam);
@@ -321,15 +322,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     // LRN lambda definition : auto foo = [](T bar, ...)
     // LRN int without name is unnamed parameter (not actually used in function but might be required 
     //  to be present by interface, stuff like that...)
-    // Lambda to return an OSC mix % from a value
-    auto oscMixStringFromValue = [](float value, int)
-    {
-        char s[16] = {0};
-        // Print mix ratio of OSC1:OSC2
-        snprintf(s, 16, "%4.0f:%2.0f", 100.0 - 0.5f * value, 0.5f * value);
-        return juce::String(s);
-    };
-    
     // Lambda to filter values under a treshold and return result as a String
     auto filterVelocityStringFromValue = [](float value, int)
     {
@@ -390,17 +382,28 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            juce::NormalisableRange<float>(-50.0f, 50.0f, 0.1f, 0.3f, true),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("cent")));
-    
-    // OSC Mix
-    // Transform value to String for display at 5th parameter
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscMix, 
-                                                           "OSC1&2 Mix",
-                                                           juce::NormalisableRange<float>(0.0f, 100.f),
+        
+    // OSC1 Level
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::osc1Level,
+                                                           "OSC1 Level",
+                                                           juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
+                                                           100.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // OSC2 Level
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::osc2Level,
+                                                           "OSC2 Level",
+                                                           juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
                                                            0.0f,
-                                                           juce::AudioParameterFloatAttributes()
-                                                            .withLabel("%")
-                                                            .withStringFromValueFunction(oscMixStringFromValue)));
-    
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    // Noise Level
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::noiseLevel,
+                                                           "Noise Level",
+                                                           juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+
     // Glide Mode
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::glideMode, 
                                                             "Glide Mode",
@@ -588,13 +591,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
-  
-    // Noise mix
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::noise,
-                                                           "Noise Mix",
-                                                           juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
-                                                           0.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // Master tune
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::octave,
@@ -662,18 +658,16 @@ void CppsynthAudioProcessor::update()
     else {
         synth.envRelease = std::exp(std::log(constants::SILENCE_TRESHOLD) / envReleaseSamples);
     }
-    
-    // Noise mix
-    float noiseMix = noiseParam->get() / 100.0f;
-    noiseMix *= noiseMix;
-    synth.noiseMix = noiseMix * 0.06f;
-    
-    // OSC2 mix
-    synth.oscMix = oscMixParam->get() / 100.0f;
+        
+    // OSCs & noise levels
+    synth.osc1Level = osc1LevelParam->get() / 100.0f;
+    synth.osc2Level = osc2LevelParam->get() / 100.0f;
+    synth.noiseLevel = noiseLevelParam->get() / 100.0f * 0.06f; // Heavily reduce noise cause it's so loud
     
     // OSC2 tuning
     float semi = oscTuneParam->get();
     float cent = oscFineParam->get();
+    
     // To calculate pitch of any note with starting pitch, we use pitch * 2^(N/12)
     //  where N is the number of fractionnal semitones
     // add tiny little offset to prevent both osc from cancelling each other
@@ -702,7 +696,7 @@ void CppsynthAudioProcessor::update()
     // Volume
     // TODO: not sure about this, see for change (215 244)
     // TODO: reso of HPF
-    synth.volumeTrim = 0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * (1.5f - 0.5f * filterReso);
+    synth.volumeTrim = 0.0008f * (3.2f - 25.0f * synth.noiseLevel) * (1.5f - 0.5f * filterReso);
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
     
     // TODO: add velocity sensitivity for amplitude and filter
