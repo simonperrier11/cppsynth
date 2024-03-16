@@ -34,10 +34,10 @@ public:
     float modWheel;
     float glideRate; // speed of glide
     float glideBend; // adds a glide up or down before new notes
-    float filterCutoff, filterQ;
-    float filterLFODepth;
-    float filterAttack, filterDecay, filterSustain, filterRelease;
-    float filterEnvDepth;
+    float lpfCutoff, lpfQ;
+    float lpfLFODepth;
+    float lpfAttack, lpfDecay, lpfSustain, lpfRelease;
+    float lpfEnvDepth;
     float hpfCutoff, hpfQ;
     float hpfLFODepth;
     float hpfAttack, hpfDecay, hpfSustain, hpfRelease;
@@ -87,7 +87,7 @@ private:
     float pitchBend;
     float lfo; // current phase of LFO sine wave
     // will hold the smoothed versions of filters Mod value (to remove zipper noise)
-    float filterZip;
+    float lpfZip;
     float hpfZip;
     bool sustainPressed;
     // LRN allocate arr size directly in std::array<Type, Size> arr;

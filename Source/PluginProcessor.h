@@ -25,15 +25,15 @@ namespace ParameterID
     PARAMETER_ID(glideMode)
     PARAMETER_ID(glideRate)
     PARAMETER_ID(glideBend)
-    PARAMETER_ID(filterFreq)
-    PARAMETER_ID(filterReso)
-    PARAMETER_ID(filterEnv)
-    PARAMETER_ID(filterLFO)
-    PARAMETER_ID(filterVelocity)
-    PARAMETER_ID(filterAttack)
-    PARAMETER_ID(filterDecay)
-    PARAMETER_ID(filterSustain)
-    PARAMETER_ID(filterRelease)
+    PARAMETER_ID(lpfFreq)
+    PARAMETER_ID(lpfReso)
+    PARAMETER_ID(lpfEnv)
+    PARAMETER_ID(lpfLFO)
+    PARAMETER_ID(lpfVelocity)
+    PARAMETER_ID(lpfAttack)
+    PARAMETER_ID(lpfDecay)
+    PARAMETER_ID(lpfSustain)
+    PARAMETER_ID(lpfRelease)
     PARAMETER_ID(hpfFreq)
     PARAMETER_ID(hpfReso)
     PARAMETER_ID(hpfEnv)
@@ -122,15 +122,15 @@ private:
     juce::AudioParameterChoice* glideModeParam;
     juce::AudioParameterFloat* glideRateParam;
     juce::AudioParameterFloat* glideBendParam;
-    juce::AudioParameterFloat* filterFreqParam;
-    juce::AudioParameterFloat* filterResoParam;
-    juce::AudioParameterFloat* filterEnvParam;
-    juce::AudioParameterFloat* filterLFOParam;
-    juce::AudioParameterFloat* filterVelocityParam;
-    juce::AudioParameterFloat* filterAttackParam;
-    juce::AudioParameterFloat* filterDecayParam;
-    juce::AudioParameterFloat* filterSustainParam;
-    juce::AudioParameterFloat* filterReleaseParam;
+    juce::AudioParameterFloat* lpfFreqParam;
+    juce::AudioParameterFloat* lpfResoParam;
+    juce::AudioParameterFloat* lpfEnvParam;
+    juce::AudioParameterFloat* lpfLFOParam;
+    juce::AudioParameterFloat* lpfVelocityParam;
+    juce::AudioParameterFloat* lpfAttackParam;
+    juce::AudioParameterFloat* lpfDecayParam;
+    juce::AudioParameterFloat* lpfSustainParam;
+    juce::AudioParameterFloat* lpfReleaseParam;
     juce::AudioParameterFloat* hpfFreqParam;
     juce::AudioParameterFloat* hpfResoParam;
     juce::AudioParameterFloat* hpfEnvParam;

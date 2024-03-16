@@ -24,7 +24,7 @@ void Synth::allocateResources(double sampleRate_, int /*samplesPerBlock*/) {
     
     // Give sampleRate to voices filters to calculate coefficiants
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
-        voices[v].filter.sampleRate = sampleRate;
+        voices[v].lpf.sampleRate = sampleRate;
         voices[v].hpf.sampleRate = sampleRate;
     }
 }
@@ -52,7 +52,7 @@ void Synth::reset()
     lfoStep = 0;
     modWheel = 0;
     lastNote = 0;
-    filterZip = 0;
+    lpfZip = 0;
     hpfZip = 0;
 }
 
@@ -73,9 +73,9 @@ void Synth::render(float** outputBuffers, int sampleCount)
             voice.glideRate = glideRate;
             
             // Filter values
-            voice.filterCutoff = filterCutoff;
-            voice.filterQ = filterQ;
-            voice.filterEnvDepth = filterEnvDepth;
+            voice.lpfCutoff = lpfCutoff;
+            voice.lpfQ = lpfQ;
+            voice.lpfEnvDepth = lpfEnvDepth;
             
             voice.hpfCutoff = hpfCutoff;
             voice.hpfQ = hpfQ;
@@ -128,7 +128,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         
         if (!voice.env.isActive()) {
             voice.env.reset();
-            voice.filter.reset();
+            voice.lpf.reset();
             voice.hpf.reset();
         }
     }
@@ -235,18 +235,18 @@ void Synth::startVoice(int voiceIndex, int note, int velocity) {
     env.attack();
     
     // Filter
-    voice.filterCutoff = filterCutoff;
-    voice.filterQ = filterQ;
+    voice.lpfCutoff = lpfCutoff;
+    voice.lpfQ = lpfQ;
     voice.hpfCutoff = hpfCutoff;
     voice.hpfQ = hpfQ;
     
     // Filter envelope settings + trigger envelope
-    Envelope& filterEnv = voice.filterEnv;
-    filterEnv.attackMultiplier = filterAttack;
-    filterEnv.decayMultiplier = filterDecay;
-    filterEnv.sustainLevel = filterSustain;
-    filterEnv.releaseMultiplier = filterRelease;
-    filterEnv.attack();
+    Envelope& lpfEnv = voice.lpfEnv;
+    lpfEnv.attackMultiplier = lpfAttack;
+    lpfEnv.decayMultiplier = lpfDecay;
+    lpfEnv.sustainLevel = lpfSustain;
+    lpfEnv.releaseMultiplier = lpfRelease;
+    lpfEnv.attack();
     
     Envelope& hpfEnv = voice.hpfEnv;
     hpfEnv.attackMultiplier = hpfAttack;
@@ -386,11 +386,11 @@ void Synth::updateLFO()
         float vibratoMod = 1.0f + sine * (modWheel + vibrato);
         
         // LFO depth for filter cutoff
-        float filterMod = filterLFODepth * sine;
+        float lpfMod = lpfLFODepth * sine;
         float hpfMod = hpfLFODepth * sine;
         
         // One-pole filter to move filterZip closer to filterMod every step
-        filterZip += 0.005f * (filterMod - filterZip);
+        lpfZip += 0.005f * (lpfMod - lpfZip);
         hpfZip += 0.005f * (hpfMod - hpfZip);
         
         for (int v = 0; v < constants::MAX_VOICES; ++v) {
@@ -399,7 +399,7 @@ void Synth::updateLFO()
             if (voice.env.isActive()) {
                 voice.osc1.modulation = vibratoMod;
                 voice.osc2.modulation = vibratoMod;
-                voice.filterMod = filterZip;
+                voice.lpfMod = lpfZip;
                 voice.hpfMod = hpfZip;
                 voice.updateLFO();
                 updatePeriod(voice);

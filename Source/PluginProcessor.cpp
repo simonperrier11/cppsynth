@@ -37,15 +37,15 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::glideMode, glideModeParam);
     castJuceParameter(apvts, ParameterID::glideRate, glideRateParam);
     castJuceParameter(apvts, ParameterID::glideBend, glideBendParam);
-    castJuceParameter(apvts, ParameterID::filterFreq, filterFreqParam);
-    castJuceParameter(apvts, ParameterID::filterReso, filterResoParam);
-    castJuceParameter(apvts, ParameterID::filterEnv, filterEnvParam);
-    castJuceParameter(apvts, ParameterID::filterLFO, filterLFOParam);
-//    castJuceParameter(apvts, ParameterID::filterVelocity, filterVelocityParam);
-    castJuceParameter(apvts, ParameterID::filterAttack, filterAttackParam);
-    castJuceParameter(apvts, ParameterID::filterDecay, filterDecayParam);
-    castJuceParameter(apvts, ParameterID::filterSustain, filterSustainParam);
-    castJuceParameter(apvts, ParameterID::filterRelease, filterReleaseParam);
+    castJuceParameter(apvts, ParameterID::lpfFreq, lpfFreqParam);
+    castJuceParameter(apvts, ParameterID::lpfReso, lpfResoParam);
+    castJuceParameter(apvts, ParameterID::lpfEnv, lpfEnvParam);
+    castJuceParameter(apvts, ParameterID::lpfLFO, lpfLFOParam);
+//    castJuceParameter(apvts, ParameterID::lpfVelocity, lpfVelocityParam);
+    castJuceParameter(apvts, ParameterID::lpfAttack, lpfAttackParam);
+    castJuceParameter(apvts, ParameterID::lpfDecay, lpfDecayParam);
+    castJuceParameter(apvts, ParameterID::lpfSustain, lpfSustainParam);
+    castJuceParameter(apvts, ParameterID::lpfRelease, lpfReleaseParam);
     castJuceParameter(apvts, ParameterID::hpfFreq, hpfFreqParam);
     castJuceParameter(apvts, ParameterID::hpfReso, hpfResoParam);
     castJuceParameter(apvts, ParameterID::hpfEnv, hpfEnvParam);
@@ -325,14 +325,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     // LRN lambda definition : auto foo = [](T bar, ...)
     // LRN int without name is unnamed parameter (not actually used in function but might be required 
     //  to be present by interface, stuff like that...)
-    // Lambda to filter values under a treshold and return result as a String
-    auto filterVelocityStringFromValue = [](float value, int)
-    {
-        if (value < -90.0f)
-            return juce::String("OFF");
-        else
-            return juce::String(value);
-    };
+//    // Lambda to filter values under a treshold and return result as a String
+//    auto filterVelocityStringFromValue = [](float value, int)
+//    {
+//        if (value < -90.0f)
+//            return juce::String("OFF");
+//        else
+//            return juce::String(value);
+//    };
     
     // Lambda to transform LFO rate to formatted String
     auto lfoRateStringFromValue = [](float value, int)
@@ -429,13 +429,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 
 
 //    // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterVelocity,
+//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfVelocity,
 //                                                           "Velocity",
 //                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 1.0f),
 //                                                           0.0f,
 //                                                           juce::AudioParameterFloatAttributes()
 //                                                            .withLabel("%")
-//                                                            .withStringFromValueFunction(filterVelocityStringFromValue)));
+//                                                            .withStringFromValueFunction(lpfVelocityStringFromValue)));
     
     // Envelope attack
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envAttack,
@@ -466,49 +466,49 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            "ms"));
 
     // Low-pass filter cutoff frequency
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterFreq,
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfFreq,
                                                            "LPF Cutoff",
                                                            juce::NormalisableRange<float>(20.0f, 20000.0f, 0.1f, 0.5f, false),
                                                            20000.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("Hz")));
 
     // LPF resonance
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterReso,
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfReso,
                                                            "LPF Q",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // LPF envelope attack
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterAttack,
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfAttack,
                                                            "LPF Attack",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // LPF ENV decay
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterDecay,
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfDecay,
                                                            "LPF Decay",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // LPF ENV sustain
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterSustain,
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfSustain,
                                                            "LPF Sustain",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            100.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // LPF ENV release
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterRelease,
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfRelease,
                                                            "LPF Release",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
     // LPF ENV amount
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterEnv,
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfEnv,
                                                            "LPF Env Depth",
                                                            juce::NormalisableRange<float>(-100.0f, 100.0f, 0.1f),
                                                            0.0f,
@@ -582,7 +582,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                             .withStringFromValueFunction(vibratoStringFromValue)));
 
     // Filter LFO amount
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::filterLFO,
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfLFO,
                                                            "LFO Depth (LPF Cutoff)",
                                                            juce::NormalisableRange<float>(0.0f, 100.0f, 1.0f),
                                                            0.0f,
@@ -685,13 +685,13 @@ void CppsynthAudioProcessor::update()
     synth.numVoices = (polyModeParam->getIndex() == 0 ? 1 : constants::MAX_VOICES);
     
     // Filter cutoff frequency
-    synth.filterCutoff = filterFreqParam->get();
+    synth.lpfCutoff = lpfFreqParam->get();
     synth.hpfCutoff = hpfFreqParam->get();
     
     // Filter Q
     // create an exponential curve that starts at filterQ = 1 and goes up to filterQ = 20
-    float filterReso = filterResoParam->get() / 100.0f;
-    synth.filterQ = std::exp(3.0f * filterReso);
+    float lpfReso = lpfResoParam->get() / 100.0f;
+    synth.lpfQ = std::exp(3.0f * lpfReso);
     
     float hpfReso = hpfResoParam->get() / 100.0f;
     synth.hpfQ = std::exp(3.0f * hpfReso);
@@ -699,18 +699,18 @@ void CppsynthAudioProcessor::update()
     // Volume
     // TODO: not sure about this, see for change (215 244)
     // TODO: reso of HPF
-    synth.volumeTrim = 0.0008f * (3.2f - 25.0f * synth.noiseLevel) * (1.5f - 0.5f * filterReso);
+    synth.volumeTrim = 0.0008f * (3.2f - 25.0f * synth.noiseLevel) * (1.5f - 0.5f * lpfReso);
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
     
     // TODO: add velocity sensitivity for amplitude and filter
     // Filter velocity
-//    float filterVelocity = filterVelocityParam->get();
-//    if (filterVelocity < -90.0f) {
+//    float lpfVelocity = lpfVelocityParam->get();
+//    if (lpfVelocity < -90.0f) {
 //        synth.velocitySensitivity = 0.0f;
 //        synth.ignoreVelocity = true;
 //    }
 //    else {
-//        synth.velocitySensitivity = 0.0005f * filterVelocity;
+//        synth.velocitySensitivity = 0.0005f * lpfVelocity;
 //        synth.ignoreVelocity = false;
 //    }
     
@@ -741,21 +741,21 @@ void CppsynthAudioProcessor::update()
     synth.glideBend = glideBendParam->get();
     
     // Filter LFO depth
-    float filterLFO = filterLFOParam->get() / 100.0f;
-    synth.filterLFODepth = 2.5f * filterLFO * filterLFO; // Parabolic curve from 0 to 2.5
+    float lpfLFO = lpfLFOParam->get() / 100.0f;
+    synth.lpfLFODepth = 2.5f * lpfLFO * lpfLFO; // Parabolic curve from 0 to 2.5
     
     float hpfLFO = hpfLFOParam->get() / 100.0f;
     synth.hpfLFODepth = 2.5f * hpfLFO * hpfLFO;
     
     // Filter envelope
     // TODO: not sure about this approach; implement filter env times directly in ms
-    synth.filterAttack = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterAttackParam->get()));
-    synth.filterDecay = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterDecayParam->get()));
-    float filterSustain = filterSustainParam->get() / 100.0f;
-    synth.filterSustain = filterSustain * filterSustain; // square sustain to skew param
-    synth.filterRelease = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * filterReleaseParam->get()));
+    synth.lpfAttack = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * lpfAttackParam->get()));
+    synth.lpfDecay = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * lpfDecayParam->get()));
+    float lpfSustain = lpfSustainParam->get() / 100.0f;
+    synth.lpfSustain = lpfSustain * lpfSustain; // square sustain to skew param
+    synth.lpfRelease = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * lpfReleaseParam->get()));
 
-    synth.filterEnvDepth = 0.06f * filterEnvParam->get(); // env depth between -6.0 and 6.0
+    synth.lpfEnvDepth = 0.06f * lpfEnvParam->get(); // env depth between -6.0 and 6.0
     
     synth.hpfAttack = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * hpfAttackParam->get()));
     synth.hpfDecay = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * hpfDecayParam->get()));

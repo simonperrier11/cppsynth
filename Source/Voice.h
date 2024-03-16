@@ -31,15 +31,15 @@ struct Voice
     float glideRate; // copy of synth's glide rate
     
     // Filters
-    LowPassFilter filter;
+    LowPassFilter lpf;
     HighPassFilter hpf;
-    float filterCutoff;
+    float lpfCutoff;
     float hpfCutoff;
-    float filterQ;
+    float lpfQ;
     float hpfQ;
-    float filterMod;
+    float lpfMod;
     float hpfMod;
-    float filterEnvDepth;
+    float lpfEnvDepth;
     float hpfEnvDepth;
     
     // Oscillators
@@ -48,7 +48,7 @@ struct Voice
 
     // Envelopes
     Envelope env;
-    Envelope filterEnv;
+    Envelope lpfEnv;
     Envelope hpfEnv;
     
     /**
@@ -62,8 +62,8 @@ struct Voice
         osc1.reset();
         osc2.reset();
         env.reset();
-        filter.reset();
-        filterEnv.reset();
+        lpf.reset();
+        lpfEnv.reset();
         
         hpf.reset();
         hpfEnv.reset();
@@ -75,7 +75,7 @@ struct Voice
     void release()
     {
         env.release();
-        filterEnv.release();
+        lpfEnv.release();
         
         hpfEnv.release();
     }
@@ -97,7 +97,7 @@ struct Voice
         float output = saw + input;
         
         // Apply filter in series; first LPF, then HPF
-        output = filter.render(output);
+        output = lpf.render(output);
         output = hpf.render(output);
         
         // Apply enveloppe
@@ -114,12 +114,12 @@ struct Voice
         period += glideRate * (target - period);
         
         // LPF
-        float filterEnvMod = filterEnv.nextValue() * filterEnvDepth;
+        float lpfEnvMod = lpfEnv.nextValue() * lpfEnvDepth;
 
         // Update coefficiants of filter with modulation, if any
-        float modulatedCutoff = filterCutoff * std::exp(filterMod + filterEnvMod); // TODO: envmod outside of exp
+        float modulatedCutoff = lpfCutoff * std::exp(lpfMod + lpfEnvMod); // TODO: envmod outside of exp
         modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f); // clamp to prevent crazy values
-        filter.updateCoefficiants(modulatedCutoff, filterQ);
+        lpf.updateCoefficiants(modulatedCutoff, lpfQ);
         
         // HPF 
         float hpfEnvMod = hpfEnv.nextValue() * hpfEnvDepth;
