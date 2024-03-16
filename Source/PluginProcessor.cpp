@@ -10,7 +10,6 @@
 #include "PluginEditor.h"
 #include "Utils.h"
 
-//==============================================================================
 // LRN the syntax "constructor() : member1(value1), member2(value2), ..." is
 //  called member initialization; allows to init members of class with values
 //  Here the synth has a parent class in which we may want to specify the constructor
@@ -77,7 +76,6 @@ CppsynthAudioProcessor::~CppsynthAudioProcessor()
     apvts.state.removeListener(this);
 }
 
-//==============================================================================
 const juce::String CppsynthAudioProcessor::getName() const
 {
     return JucePlugin_Name;
@@ -288,10 +286,15 @@ bool CppsynthAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* CppsynthAudioProcessor::createEditor()
 {
-    // By referencing *this (pluginprocessor), the GUI is automatically made using the layout
-    auto editor = new juce::GenericAudioProcessorEditor(*this);
-    editor->setSize(500, 800);
-    return editor;
+    // Generic JUCE UI
+    // // By referencing *this (pluginprocessor), the GUI is automatically made using the layout
+    // // created with createParameterLayout()
+    // auto editor = new juce::GenericAudioProcessorEditor(*this);
+    // editor->setSize(500, 800);
+    // return editor;
+    
+    // PluginEditor UI
+    return new CppsynthAudioProcessorEditor(*this);
 }
 
 void CppsynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)

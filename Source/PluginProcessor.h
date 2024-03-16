@@ -65,6 +65,7 @@ class CppsynthAudioProcessor : public juce::AudioProcessor, private juce::ValueT
 {
 public:
     // LRN {} after declaration does value initialization (call to constructor here)
+    // The apvts is made public so the PluginEditor can access it to map to UI elements
     juce::AudioProcessorValueTreeState apvts { *this, nullptr, "Parameters", createParameterLayout() };
     
     // LRN Constructor
@@ -185,7 +186,6 @@ private:
      */
     void update();
     
-    //==============================================================================
     // LRN Disable copy constructor (constructor that takes reference to other object of
     // same class) so the class cannot be copied
     // LRN Also enables JUCE built-in memory leak detector
