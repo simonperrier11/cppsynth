@@ -7,6 +7,10 @@
               pluginCode="csyn">
   <MAINGROUP id="j56MzC" name="cppsynth">
     <GROUP id="{21F9D328-4824-2EC7-C8E4-F87A0662B99D}" name="Source">
+      <FILE id="R4ttAH" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/LookAndFeel.cpp"/>
+      <FILE id="PM3qsY" name="LookAndFeel.h" compile="0" resource="0" file="Source/LookAndFeel.h"/>
+      <FILE id="rnyYgc" name="RotaryKnob.cpp" compile="1" resource="0" file="Source/RotaryKnob.cpp"/>
+      <FILE id="BUCaHv" name="RotaryKnob.h" compile="0" resource="0" file="Source/RotaryKnob.h"/>
       <FILE id="vHZalZ" name="HighPassFilter.h" compile="0" resource="0"
             file="Source/HighPassFilter.h"/>
       <FILE id="DQm7PC" name="LowPassFilter.h" compile="0" resource="0" file="Source/LowPassFilter.h"/>
