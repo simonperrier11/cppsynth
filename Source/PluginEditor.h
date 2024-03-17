@@ -43,7 +43,7 @@ private:
     using ButtonAttachment = APVTS::ButtonAttachment;
 
     // Declare synth controls, and attach them to APVTS
-    // LRN By making a slider object a regular member variable of the editor,
+    // LRN By making a RotaryKnob object a regular member variable of the editor,
     //  it is instantiated when the editor window is opened.
     //  It is automatically destroyed when the editor window is closed.
     RotaryKnob outputLevelKnob;
