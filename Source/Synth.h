@@ -43,8 +43,10 @@ public:
     float hpfAttack, hpfDecay, hpfSustain, hpfRelease;
     float hpfEnvDepth;
     int numVoices;
+    int polyMode; // 0: Mono; 1: Poly;
     int glideMode;
     bool ignoreVelocity;
+    bool oscReset;
     // TODO: apply smoothing technique to some other params as well (osc mix, etc.)
     juce::LinearSmoothedValue<float> outputLevelSmoother;
     

@@ -210,9 +210,11 @@ void Synth::startVoice(int voiceIndex, int note, int velocity) {
     lastNote = note;
     voice.note = note;
     
-    // TODO: reset on new note could be a param
-    // voice.osc1.reset();
-    // voice.osc2.reset();
+    // Reset oscillators when starting voice
+    if (oscReset) {
+        voice.osc1.reset();
+        voice.osc2.reset();
+    }
     
     // Apply curve to velocity
     // Custom curve with dynamic range -23dB - 0.72dB
@@ -278,7 +280,7 @@ void Synth::noteOn(int note, int velocity)
     
     int v = 0; // Voice index
     
-    if (numVoices == 1) { // Mono
+    if (polyMode == 0) { // Mono
         if (voices[0].note > 0) { // Legato
             restartVoiceLegato(note, velocity);
             return;

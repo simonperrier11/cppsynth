@@ -17,6 +17,8 @@ namespace ParameterID
 {
     #define PARAMETER_ID(str) const juce::ParameterID str(#str, 1);
 
+    // PARAMETER_ID(numVoices)
+    PARAMETER_ID(oscReset)
     PARAMETER_ID(osc1Level)
     PARAMETER_ID(osc2Level)
     PARAMETER_ID(noiseLevel)
@@ -29,7 +31,7 @@ namespace ParameterID
     PARAMETER_ID(lpfReso)
     PARAMETER_ID(lpfEnv)
     PARAMETER_ID(lpfLFO)
-    PARAMETER_ID(lpfVelocity)
+    // PARAMETER_ID(lpfVelocity)
     PARAMETER_ID(lpfAttack)
     PARAMETER_ID(lpfDecay)
     PARAMETER_ID(lpfSustain)
@@ -38,7 +40,7 @@ namespace ParameterID
     PARAMETER_ID(hpfReso)
     PARAMETER_ID(hpfEnv)
     PARAMETER_ID(hpfLFO)
-    PARAMETER_ID(hpfVelocity)
+    // PARAMETER_ID(hpfVelocity)
     PARAMETER_ID(hpfAttack)
     PARAMETER_ID(hpfDecay)
     PARAMETER_ID(hpfSustain)
@@ -53,6 +55,7 @@ namespace ParameterID
     PARAMETER_ID(tuning)
     PARAMETER_ID(outputLevel)
     PARAMETER_ID(polyMode)
+    PARAMETER_ID(velocitySensitivity)
 
     #undef PARAMETER_ID
 }
@@ -114,6 +117,8 @@ private:
     Synth synth;
     
     // Parameters accessible to host
+    // juce::AudioParameterInt* numVoicesParam;
+    juce::AudioParameterChoice* oscResetParam;
     juce::AudioParameterFloat* osc1LevelParam;
     juce::AudioParameterFloat* osc2LevelParam;
     juce::AudioParameterFloat* noiseLevelParam;
@@ -126,7 +131,7 @@ private:
     juce::AudioParameterFloat* lpfResoParam;
     juce::AudioParameterFloat* lpfEnvParam;
     juce::AudioParameterFloat* lpfLFOParam;
-    juce::AudioParameterFloat* lpfVelocityParam;
+    // juce::AudioParameterFloat* lpfVelocityParam;
     juce::AudioParameterFloat* lpfAttackParam;
     juce::AudioParameterFloat* lpfDecayParam;
     juce::AudioParameterFloat* lpfSustainParam;
@@ -135,7 +140,7 @@ private:
     juce::AudioParameterFloat* hpfResoParam;
     juce::AudioParameterFloat* hpfEnvParam;
     juce::AudioParameterFloat* hpfLFOParam;
-    juce::AudioParameterFloat* hpfVelocityParam;
+    // juce::AudioParameterFloat* hpfVelocityParam;
     juce::AudioParameterFloat* hpfAttackParam;
     juce::AudioParameterFloat* hpfDecayParam;
     juce::AudioParameterFloat* hpfSustainParam;
@@ -150,6 +155,7 @@ private:
     juce::AudioParameterFloat* tuningParam;
     juce::AudioParameterFloat* outputLevelParam;
     juce::AudioParameterChoice* polyModeParam;
+    juce::AudioParameterChoice* velocitySensitivityParam;
     
     // Atomic (thread-safe) flag to signal a parameter change
     std::atomic<bool> parametersChanged { false };

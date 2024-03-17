@@ -29,6 +29,8 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     // TODO: maybe add listener for specific parameter changes
 
     // Assign each identified parameter in the APVTS to a variable
+    // castJuceParameter(apvts, ParameterID::numVoices, numVoicesParam);
+    castJuceParameter(apvts, ParameterID::oscReset, oscResetParam);
     castJuceParameter(apvts, ParameterID::osc1Level, osc1LevelParam);
     castJuceParameter(apvts, ParameterID::osc2Level, osc2LevelParam);
     castJuceParameter(apvts, ParameterID::noiseLevel, noiseLevelParam);
@@ -41,7 +43,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::lpfReso, lpfResoParam);
     castJuceParameter(apvts, ParameterID::lpfEnv, lpfEnvParam);
     castJuceParameter(apvts, ParameterID::lpfLFO, lpfLFOParam);
-//    castJuceParameter(apvts, ParameterID::lpfVelocity, lpfVelocityParam);
+    // castJuceParameter(apvts, ParameterID::lpfVelocity, lpfVelocityParam);
     castJuceParameter(apvts, ParameterID::lpfAttack, lpfAttackParam);
     castJuceParameter(apvts, ParameterID::lpfDecay, lpfDecayParam);
     castJuceParameter(apvts, ParameterID::lpfSustain, lpfSustainParam);
@@ -50,7 +52,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::hpfReso, hpfResoParam);
     castJuceParameter(apvts, ParameterID::hpfEnv, hpfEnvParam);
     castJuceParameter(apvts, ParameterID::hpfLFO, hpfLFOParam);
-//    castJuceParameter(apvts, ParameterID::hpfVelocity, hpfVelocityParam);
+    // castJuceParameter(apvts, ParameterID::hpfVelocity, hpfVelocityParam);
     castJuceParameter(apvts, ParameterID::hpfAttack, hpfAttackParam);
     castJuceParameter(apvts, ParameterID::hpfDecay, hpfDecayParam);
     castJuceParameter(apvts, ParameterID::hpfSustain, hpfSustainParam);
@@ -65,6 +67,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::tuning, tuningParam);
     castJuceParameter(apvts, ParameterID::outputLevel, outputLevelParam);
     castJuceParameter(apvts, ParameterID::polyMode, polyModeParam);
+    castJuceParameter(apvts, ParameterID::velocitySensitivity, velocitySensitivityParam);
     
     // Add listener for parameter changes
     apvts.state.addListener(this);
@@ -367,6 +370,21 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                             juce::StringArray { "Mono", "Poly" },
                                                             0));
     
+    // OSC reset on new note
+    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::oscReset,
+                                                            "OSC Reset",
+                                                            juce::StringArray { "On", "Off" },
+                                                            1));
+    
+    // Velocity sensitivity toggle
+    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::velocitySensitivity,
+                                                            "Velocity Sensitivity",
+                                                            juce::StringArray { "On", "Off" },
+                                                            0));
+    
+    // TODO: dynamically change number of voices
+    // layout.add(std::make_unique<juce::AudioParameterInt>(ParameterID::numVoices, "Voices Count", 1, 10, 10));
+
     // LRN AudioParameterFloat has an ID, a label, a range, a default value, and an attribute object that
     //  describes the label for the units
     // LRN juce::NormalisableRange<float> maps a range from 0.0 to 1.0
@@ -681,8 +699,11 @@ void CppsynthAudioProcessor::update()
     float tuning = tuningParam->get();
     synth.tune = octave * 12.0f + tuning / 100.0f;
         
-    // Voices
-    synth.numVoices = (polyModeParam->getIndex() == 0 ? 1 : constants::MAX_VOICES);
+    // Mono/unisson/poly mode
+    synth.polyMode = polyModeParam->getIndex();
+    
+    // OSC reset
+    synth.oscReset = (oscResetParam->getIndex() == 0 ? true : false);
     
     // Filter cutoff frequency
     synth.lpfCutoff = lpfFreqParam->get();
@@ -714,7 +735,8 @@ void CppsynthAudioProcessor::update()
 //        synth.ignoreVelocity = false;
 //    }
     
-    synth.ignoreVelocity = false;
+    // Velocity sensitivity toggle
+    synth.ignoreVelocity = (velocitySensitivityParam->getIndex() == 0 ? false : true);
     
     // LFO
     // Skew parameter value to 0.02Hz-20Hz approx.
