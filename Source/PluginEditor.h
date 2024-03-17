@@ -22,7 +22,7 @@ public:
     /**
      Draws contents of the UI.
      */
-    void paint (juce::Graphics&) override;
+    void paint(juce::Graphics&) override;
     
     /**
      Lays out position of contents of the UI.

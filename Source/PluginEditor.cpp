@@ -36,10 +36,10 @@ CppsynthAudioProcessorEditor::~CppsynthAudioProcessorEditor()
 {
 }
 
-void CppsynthAudioProcessorEditor::paint (juce::Graphics& g)
+void CppsynthAudioProcessorEditor::paint(juce::Graphics& g)
 {
     // Background color
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 
 //    g.setColour (juce::Colours::white);
 //    g.setFont (15.0f);
