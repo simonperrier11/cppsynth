@@ -7,6 +7,8 @@
               pluginCode="csyn">
   <MAINGROUP id="j56MzC" name="cppsynth">
     <GROUP id="{21F9D328-4824-2EC7-C8E4-F87A0662B99D}" name="Source">
+      <FILE id="nB4wQ0" name="PinkNoise.h" compile="0" resource="0" file="Source/PinkNoise.h"/>
+      <FILE id="GYMRbp" name="WhiteNoise.h" compile="0" resource="0" file="Source/WhiteNoise.h"/>
       <GROUP id="{21A30911-DDFF-3C89-DD07-0C30C0D546CC}" name="Resources">
         <FILE id="rpXXhQ" name="JetBrainsMono-Regular.ttf" compile="0" resource="1"
               file="../../../../../Downloads/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-Regular.ttf"/>

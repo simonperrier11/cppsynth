@@ -15,7 +15,8 @@
 #include <JuceHeader.h>
 #include "Constants.h"
 #include "Voice.h"
-#include "NoiseGenerator.h"
+#include "WhiteNoise.h"
+#include "PinkNoise.h"
 
 /**
  Represents the synthesizer as a whole. The synthesizer handles MIDI, renders audio.
@@ -45,6 +46,7 @@ public:
     int numVoices;
     int polyMode; // 0: Mono; 1: Poly;
     int glideMode;
+    int noiseType; // 0: White; 1: Pink
     bool ignoreVelocity;
     bool oscReset;
     // TODO: apply smoothing technique to some other params as well (osc mix, etc.)
@@ -94,7 +96,8 @@ private:
     bool sustainPressed;
     // LRN allocate arr size directly in std::array<Type, Size> arr;
     std::array<Voice, constants::MAX_VOICES> voices;
-    NoiseGenerator noiseGen;
+    WhiteNoise whiteNoise;
+    PinkNoise pinkNoise;
     
     /**
      Handles the Note On command.

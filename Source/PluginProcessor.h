@@ -56,6 +56,7 @@ namespace ParameterID
     PARAMETER_ID(outputLevel)
     PARAMETER_ID(polyMode)
     PARAMETER_ID(velocitySensitivity)
+    PARAMETER_ID(noiseType)
 
     #undef PARAMETER_ID
 }
@@ -156,6 +157,7 @@ private:
     juce::AudioParameterFloat* outputLevelParam;
     juce::AudioParameterChoice* polyModeParam;
     juce::AudioParameterChoice* velocitySensitivityParam;
+    juce::AudioParameterChoice* noiseTypeParam;
     
     // Atomic (thread-safe) flag to signal a parameter change
     std::atomic<bool> parametersChanged { false };

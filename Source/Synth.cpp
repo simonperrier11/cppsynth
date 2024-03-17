@@ -41,8 +41,9 @@ void Synth::reset()
         voices[v].reset();
     }
     
-    // Reset noise generator
-    noiseGen.reset();
+    // Reset noise generators
+    whiteNoise.reset();
+    pinkNoise.reset();
     
     // Reset default values for sytnh
     pitchBend = 1.0f;
@@ -88,7 +89,17 @@ void Synth::render(float** outputBuffers, int sampleCount)
         updateLFO();
         
         // Get next noise value
-        const float noise = noiseGen.nextValue() * noiseLevel;
+        float noise;
+        switch (noiseType) {
+            case 0: { // White
+                noise = whiteNoise.nextValue() * noiseLevel;
+                break;
+            }
+            case 1: { // Pink
+                noise = pinkNoise.nextValue() * noiseLevel;
+                break;
+            }
+        }
         
         float outputLeft = 0.0f;
         float outputRight = 0.0f;

@@ -68,6 +68,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::outputLevel, outputLevelParam);
     castJuceParameter(apvts, ParameterID::polyMode, polyModeParam);
     castJuceParameter(apvts, ParameterID::velocitySensitivity, velocitySensitivityParam);
+    castJuceParameter(apvts, ParameterID::noiseType, noiseTypeParam);
     
     // Add listener for parameter changes
     apvts.state.addListener(this);
@@ -418,6 +419,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
+    // Noise type
+    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::noiseType,
+                                                            "Noise Type",
+                                                            juce::StringArray { "White", "Pink" },
+                                                            0));
+
     // Noise Level
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::noiseLevel,
                                                            "Noise Level",
@@ -704,6 +711,9 @@ void CppsynthAudioProcessor::update()
     
     // OSC reset
     synth.oscReset = (oscResetParam->getIndex() == 0 ? true : false);
+    
+    // Noise type
+    synth.noiseType = noiseTypeParam->getIndex();
     
     // Filter cutoff frequency
     synth.lpfCutoff = lpfFreqParam->get();
