@@ -12,6 +12,13 @@
 
 LookAndFeel::LookAndFeel()
 {
+    // JetBrains Mono font
+    // LRN construct new juce::Typeface object from the pointer to the font data
+    juce::Typeface::Ptr typeface = juce::Typeface::createSystemTypefaceFor(BinaryData::JetBrainsMonoRegular_ttf, BinaryData::JetBrainsMonoRegular_ttfSize);
+    setDefaultSansSerifTypeface(typeface);
+    
+    // Default accent color
+    // TODO: override for specific parts of synth maybe
     auto accentColor = juce::Colour(220, 220, 220);
     
     // Plugin background
