@@ -10,8 +10,8 @@
       <FILE id="nB4wQ0" name="PinkNoise.h" compile="0" resource="0" file="Source/PinkNoise.h"/>
       <FILE id="GYMRbp" name="WhiteNoise.h" compile="0" resource="0" file="Source/WhiteNoise.h"/>
       <GROUP id="{21A30911-DDFF-3C89-DD07-0C30C0D546CC}" name="Resources">
-        <FILE id="rpXXhQ" name="JetBrainsMono-Regular.ttf" compile="0" resource="1"
-              file="../../../../../Downloads/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-Regular.ttf"/>
+        <FILE id="eZoJv7" name="JetBrainsMono-Regular.ttf" compile="0" resource="1"
+              file="Fonts/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-Regular.ttf"/>
       </GROUP>
       <FILE id="R4ttAH" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/LookAndFeel.cpp"/>
       <FILE id="PM3qsY" name="LookAndFeel.h" compile="0" resource="0" file="Source/LookAndFeel.h"/>
