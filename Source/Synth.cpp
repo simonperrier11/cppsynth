@@ -213,6 +213,7 @@ void Synth::startVoice(int voiceIndex, int note, int velocity) {
      handled by another voice.
      Note : 2^N/12 == 1.059463094359^N, where N is in semitones
      .*/
+    // TODO: Change for wavetable
     voice.period = period * std::pow(1.059463094359f, float(noteDistance) - glideBend);
     
     // Limit period to small value
@@ -276,6 +277,7 @@ void Synth::restartVoiceLegato(int note, int velocity) {
     voice.target = period;
     
     // Directly set period to voice if glide is off
+    // TODO: Change for wavetable
     if (glideMode == 0) { voice.period = period; }
     
     voice.env.level += constants::SILENCE_TRESHOLD + constants::SILENCE_TRESHOLD;
@@ -410,6 +412,7 @@ void Synth::updateLFO()
             Voice& voice = voices[v];
             
             if (voice.env.isActive()) {
+                // TODO: change for wavetable?
                 voice.osc1.modulation = vibratoMod;
                 voice.osc2.modulation = vibratoMod;
                 voice.lpfMod = lpfZip;
@@ -424,6 +427,7 @@ void Synth::updateLFO()
 void Synth::updatePeriod(Voice &voice)
 {
     // TODO: master tune
+    // TODO: change for wavetable
     voice.osc1.period = voice.period * pitchBend;
     voice.osc2.period = voice.osc1.period * osc2detune;
 }

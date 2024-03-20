@@ -11,6 +11,7 @@
 #pragma once
 #include "Constants.h"
 #include "Blit.h"
+#include "WavetableOscillator.h"
 #include "Envelope.h"
 #include "LowPassFilter.h"
 #include "HighPassFilter.h"
@@ -45,6 +46,9 @@ struct Voice
     // Oscillators
     Blit osc1;
     Blit osc2;
+    
+    // WavetableOscillator wv1;
+    // WavetableOscillator wv2;
 
     // Envelopes
     Envelope env;
