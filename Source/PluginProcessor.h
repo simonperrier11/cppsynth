@@ -24,6 +24,8 @@ namespace ParameterID
     PARAMETER_ID(noiseLevel)
     PARAMETER_ID(oscTune)
     PARAMETER_ID(oscFine)
+    PARAMETER_ID(osc1Morph)
+    PARAMETER_ID(osc2Morph)
     PARAMETER_ID(glideMode)
     PARAMETER_ID(glideRate)
     PARAMETER_ID(glideBend)
@@ -125,6 +127,8 @@ private:
     juce::AudioParameterFloat* noiseLevelParam;
     juce::AudioParameterFloat* oscTuneParam;
     juce::AudioParameterFloat* oscFineParam;
+    juce::AudioParameterFloat* osc1MorphParam;
+    juce::AudioParameterFloat* osc2MorphParam;
     juce::AudioParameterChoice* glideModeParam;
     juce::AudioParameterFloat* glideRateParam;
     juce::AudioParameterFloat* glideBendParam;

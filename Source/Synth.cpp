@@ -22,10 +22,14 @@ void Synth::allocateResources(double sampleRate_, int /*samplesPerBlock*/) {
     // LRN static_cast has more compile-time checks than regular cast, and is safer
     sampleRate = static_cast<float>(sampleRate_);
     
-    // Give sampleRate to voices filters to calculate coefficiants
+    // Pass sample rate to various components of voices
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
+        // Give sampleRate to voices filters to calculate coefficiants
         voices[v].lpf.sampleRate = sampleRate;
         voices[v].hpf.sampleRate = sampleRate;
+        
+        // Initialize wavetables with sample rate
+        voices[v].initializeOscillators(sampleRate);
     }
 }
 
@@ -66,11 +70,25 @@ void Synth::render(float** outputBuffers, int sampleCount)
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         Voice& voice = voices[v];
         
+        voice.osc1Morph = osc1Morph;
+        voice.osc2Morph = osc2Morph;
+        voice.osc1Level = osc1Level;
+        voice.osc2Level = osc2Level;
+        
         if (voice.env.isActive()) {
             // TODO: general tune and finetune, OSC and noise levels here
 
             // Glide might affect current period value
-            updatePeriod(voice);
+            // updatePeriod(voice);
+            
+            
+            
+            
+            updateFreq(voice);
+            
+            
+            
+            
             voice.glideRate = glideRate;
             
             // Filter values
@@ -86,6 +104,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         
     // For all the samples we need to render (sampleCount)...
     for (int sample = 0; sample < sampleCount; ++sample) {
+        // Update LFO first
         updateLFO();
         
         // Get next noise value
@@ -162,6 +181,8 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
     uint8_t note = data1 & 0x7F;
     uint8_t velocity = data2 & 0x7F;
 
+    DBG(note);
+    
     switch (command) {
         case 0x80: { // Note Off command code
             noteOff(note);
@@ -185,18 +206,25 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
         }
         case 0xE0: {
             // Range of pitch bend is 2 semitones up and down
-            // TODO: not sure about this, see for change (189)
-            pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192));
+            pitchBend = std::exp(0.000014102f * float(data1 + 128 * data2 - 8192));
             break;
         }
     }
 }
 
-void Synth::startVoice(int voiceIndex, int note, int velocity) {
-    float period = calcPeriod(voiceIndex, note);
-
+void Synth::startVoice(int voiceIndex, int note, int velocity)
+{
     Voice& voice = voices[voiceIndex];
-    voice.target = period;
+
+    
+    // Get frequency for note from MIDI number
+    const auto freq = midiNoteNumberToFreq(note, voiceIndex);
+    
+    voice.setFrequencyAtNote(note, freq);
+    
+//    float period = calcPeriod(voiceIndex, note);
+
+    voice.target = freq;
     
     // Calculate note distance for glide
     int noteDistance = 0;
@@ -214,10 +242,10 @@ void Synth::startVoice(int voiceIndex, int note, int velocity) {
      Note : 2^N/12 == 1.059463094359^N, where N is in semitones
      .*/
     // TODO: Change for wavetable
-    voice.period = period * std::pow(1.059463094359f, float(noteDistance) - glideBend);
+    voice.frequency = freq * std::pow(1.059463094359f, float(noteDistance) - glideBend);
     
     // Limit period to small value
-    if (voice.period < 6.0f) { voice.period = 6.0f; }
+//    if (voice.period < 6.0f) { voice.period = 6.0f; }
     
     lastNote = note;
     voice.note = note;
@@ -231,13 +259,18 @@ void Synth::startVoice(int voiceIndex, int note, int velocity) {
     // Apply curve to velocity
     // Custom curve with dynamic range -23dB - 0.72dB
     float velocityCurve = 0.004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
-    voice.osc1.amplitude = velocityCurve * volumeTrim;
-    voice.osc2.amplitude = voice.osc1.amplitude;
+//    voice.osc1.amplitude = velocityCurve * volumeTrim;
+//    voice.osc2.amplitude = voice.osc1.amplitude;
+    voice.velocityAmp = velocityCurve * volumeTrim;
     
     // Apply levels
     // TODO: apply change when moving slider
-    voice.osc1.amplitude = voice.osc1.amplitude * osc1Level;
-    voice.osc2.amplitude = voice.osc2.amplitude * osc2Level;
+//    voice.osc1.amplitude = voice.osc1.amplitude * osc1Level;
+//    voice.osc2.amplitude = voice.osc2.amplitude * osc2Level;
+    
+    // OSC levels
+    voice.osc1Level = osc1Level;
+    voice.osc2Level = osc2Level;
 
     // LRN & to dereference voice.env to access it just by env variable
     // Envelope settings + trigger envelope
@@ -270,15 +303,19 @@ void Synth::startVoice(int voiceIndex, int note, int velocity) {
     hpfEnv.attack();
 }
 
-void Synth::restartVoiceLegato(int note, int velocity) {
-    float period = calcPeriod(0, note);
-    
+void Synth::restartVoiceLegato(int note, int velocity)
+{
     Voice& voice = voices[0];
-    voice.target = period;
+
+    const auto freq = midiNoteNumberToFreq(note, 0);
     
+    voice.setFrequencyAtNote(note, freq);
+
+    voice.target = freq;
+
     // Directly set period to voice if glide is off
     // TODO: Change for wavetable
-    if (glideMode == 0) { voice.period = period; }
+    if (glideMode == 0) { voice.frequency = freq; }
     
     voice.env.level += constants::SILENCE_TRESHOLD + constants::SILENCE_TRESHOLD;
     voice.note = note;
@@ -308,7 +345,6 @@ void Synth::noteOn(int note, int velocity)
 
 void Synth::noteOff(int note)
 {
-    // TODO: if noteOff velocity is to be implemented, use here
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         if (voices[v].note == note) {
             if (sustainPressed) {
@@ -316,7 +352,6 @@ void Synth::noteOff(int note)
             }
             else {
                 voices[v].release();
-                voices[v].note = constants::NO_NOTE_VALUE;
             }
         }
     }
@@ -398,7 +433,7 @@ void Synth::updateLFO()
         const float sine = std::sin(lfo);
         
         // Create and apply vibrato modulation to voices
-        float vibratoMod = 1.0f + sine * (modWheel + vibrato);
+        vibratoMod = 1.0f + sine * (modWheel + vibrato);
         
         // LFO depth for filter cutoff
         float lpfMod = lpfLFODepth * sine;
@@ -413,12 +448,10 @@ void Synth::updateLFO()
             
             if (voice.env.isActive()) {
                 // TODO: change for wavetable?
-                voice.osc1.modulation = vibratoMod;
-                voice.osc2.modulation = vibratoMod;
                 voice.lpfMod = lpfZip;
                 voice.hpfMod = hpfZip;
                 voice.updateLFO();
-                updatePeriod(voice);
+                updateFreq(voice);
             }
         }
     }
@@ -426,10 +459,20 @@ void Synth::updateLFO()
 
 void Synth::updatePeriod(Voice &voice)
 {
-    // TODO: master tune
-    // TODO: change for wavetable
     voice.osc1.period = voice.period * pitchBend;
     voice.osc2.period = voice.osc1.period * osc2detune;
+}
+
+void Synth::updateFreq(Voice &voice)
+{
+    // TODO: master tune
+    voice.modFrequencyAtNote(voice.note, pitchBend, vibratoMod, osc2detune);
+}
+
+float Synth::midiNoteNumberToFreq(int midiNoteNumber, int voiceIndex)
+{
+    // Also apply general synth tuning
+    return 440.0f * std::exp2((float(midiNoteNumber - 69 + (constants::ANALOG_DRIFT * float(voiceIndex))) + tune) / 12.0f);
 }
 
 bool Synth::isPlayingLegatoStyle() const

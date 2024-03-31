@@ -28,11 +28,13 @@ public:
     float envAttack, envDecay, envSustain, envRelease;
     float tune;
     float osc2detune;
+    float osc1Morph, osc2Morph;
     float volumeTrim;
     float velocitySensitivity;
     float lfoInc; // phase increment for LFO (between 0 and 2pi)
     float vibrato; // pitch LFO depth
     float modWheel;
+    float vibratoMod;
     float glideRate; // speed of glide
     float glideBend; // adds a glide up or down before new notes
     float lpfCutoff, lpfQ;
@@ -143,10 +145,19 @@ private:
     void updatePeriod(Voice& voice);
     
     /**
+     Updates the oscillators frequency if the voice changes it (while gliding or pitch bending, for example).
+     */
+    void updateFreq(Voice& voice);
+    
+    /**
+     Converts a MIDI note number to a frequency in hertz. Adds analog drift with voice index.
+     */
+    float midiNoteNumberToFreq(int midiNoteNumber, int voiceIndex);
+    
+    /**
      Helper method to determine if synth is being played in legato style.
      The synth is being played in legato style if, for a new noteOn event, at least one key
      must be held down for a previous note.
      */
     bool isPlayingLegatoStyle() const;
-
 };

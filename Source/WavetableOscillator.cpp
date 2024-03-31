@@ -19,7 +19,6 @@ WavetableOscillator::WavetableOscillator(std::vector<float> waveTable, float sam
 
 void WavetableOscillator::setFrequency(float frequency)
 {
-    // this.frequency = frequency;
     indexIncrement = frequency * static_cast<float>(waveTable.size()) / sampleRate;
 }
 
@@ -40,6 +39,20 @@ float WavetableOscillator::interpolateLinearly()
     const auto truncatedIndex = static_cast<int>(index);
     const auto nextIndex = (truncatedIndex + 1) % static_cast<int>(waveTable.size());
     
-    // TODO: Calculate weights of indexes
-    return 0.0f;
+    // Calculate weights of both indexes
+    const auto nextIndexWeight = index - static_cast<float>(truncatedIndex);
+    const auto truncatedIndexWeight = 1.0f - nextIndexWeight;
+    
+    return truncatedIndexWeight * waveTable[truncatedIndex] + nextIndexWeight * waveTable[nextIndex];
+}
+
+void WavetableOscillator::stop()
+{
+    index = 0.0f;
+    indexIncrement = 0.0f;
+}
+
+bool WavetableOscillator::isPlaying()
+{
+    return indexIncrement != 0.0f;
 }

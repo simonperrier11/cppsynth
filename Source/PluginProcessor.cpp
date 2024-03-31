@@ -36,6 +36,8 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::noiseLevel, noiseLevelParam);
     castJuceParameter(apvts, ParameterID::oscTune, oscTuneParam);
     castJuceParameter(apvts, ParameterID::oscFine, oscFineParam);
+    castJuceParameter(apvts, ParameterID::osc1Morph, osc1MorphParam);
+    castJuceParameter(apvts, ParameterID::osc2Morph, osc2MorphParam);
     castJuceParameter(apvts, ParameterID::glideMode, glideModeParam);
     castJuceParameter(apvts, ParameterID::glideRate, glideRateParam);
     castJuceParameter(apvts, ParameterID::glideBend, glideBendParam);
@@ -143,7 +145,7 @@ void CppsynthAudioProcessor::changeProgramName (int index, const juce::String& n
 
 void CppsynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Allocate memory needed for Synth, then reset
+    // Pass sample rate to synth
     synth.allocateResources(sampleRate, samplesPerBlock);
     parametersChanged.store(true); // force update() to be executed
     reset();
@@ -418,6 +420,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
+    
+    // OSC1 Morph
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::osc1Morph,
+                                                           "OSC1 Shape",
+                                                           juce::NormalisableRange<float>(0.f, 0.999f, 0.001f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes()));
+    
+    // OSC2 Morph
+    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::osc2Morph,
+                                                           "OSC2 Shape",
+                                                           juce::NormalisableRange<float>(0.f, 0.999f, 0.001f),
+                                                           0.0f,
+                                                           juce::AudioParameterFloatAttributes()));
 
     // Noise type
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::noiseType,
@@ -662,7 +678,8 @@ void CppsynthAudioProcessor::update()
     //  foo->bar calls method bar on the object pointed to by pointer foo
     // Envelope attack
     float envAttackTimeMs = envAttackParam->get();
-    float envAttackSamples = sampleRate * envAttackTimeMs / 100;
+    // Add some samples of attack to prevent pop
+    float envAttackSamples = (sampleRate * envAttackTimeMs / 100) + constants::POP_PREVENT_SAMPLES;
 
     // The multiplier for the one-pole filter is passed as the envAttack param for the synth
     synth.envAttack = std::exp(std::log(constants::SILENCE_TRESHOLD) / envAttackSamples);
@@ -677,16 +694,9 @@ void CppsynthAudioProcessor::update()
     
     // Envelope release
     float envReleaseTimeMs = envReleaseParam->get();
-    float envReleaseSamples = sampleRate * envReleaseTimeMs / 1000;
-    
-    if (envReleaseSamples < 0.1f) {
-        // Change to extra fast release to prevent pop
-        envReleaseSamples = 0.1f;
-    }
-    else {
-        synth.envRelease = std::exp(std::log(constants::SILENCE_TRESHOLD) / envReleaseSamples);
-    }
-        
+    float envReleaseSamples = (sampleRate * envReleaseTimeMs / 1000) + constants::POP_PREVENT_SAMPLES;
+    synth.envRelease = std::exp(std::log(constants::SILENCE_TRESHOLD) / envReleaseSamples);
+
     // OSCs & noise levels
     synth.osc1Level = osc1LevelParam->get() / 100.0f;
     synth.osc2Level = osc2LevelParam->get() / 100.0f;
@@ -699,12 +709,16 @@ void CppsynthAudioProcessor::update()
     // To calculate pitch of any note with starting pitch, we use pitch * 2^(N/12)
     //  where N is the number of fractionnal semitones
     // add tiny little offset to prevent both osc from cancelling each other
-    synth.osc2detune = std::pow(2.0f, (-semi - 0.01f * cent) / 12.0f) + 0.00001;
+    synth.osc2detune = std::pow(2.0f, (semi + 0.01f * cent) / 12.0f) + 0.00001;
     
     // Tuning
     float octave = octaveParam->get();
     float tuning = tuningParam->get();
     synth.tune = octave * 12.0f + tuning / 100.0f;
+    
+    // OSC morph
+    synth.osc1Morph = osc1MorphParam->get();
+    synth.osc2Morph = osc2MorphParam->get();
         
     // Mono/unisson/poly mode
     synth.polyMode = polyModeParam->getIndex();
@@ -779,8 +793,7 @@ void CppsynthAudioProcessor::update()
     float hpfLFO = hpfLFOParam->get() / 100.0f;
     synth.hpfLFODepth = 2.5f * hpfLFO * hpfLFO;
     
-    // Filter envelope
-    // TODO: not sure about this approach; implement filter env times directly in ms
+    // Filters envelopes
     synth.lpfAttack = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * lpfAttackParam->get()));
     synth.lpfDecay = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * lpfDecayParam->get()));
     float lpfSustain = lpfSustainParam->get() / 100.0f;
@@ -792,8 +805,8 @@ void CppsynthAudioProcessor::update()
     synth.hpfAttack = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * hpfAttackParam->get()));
     synth.hpfDecay = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * hpfDecayParam->get()));
     float hpfSustain = hpfSustainParam->get() / 100.0f;
-    synth.hpfSustain = hpfSustain * hpfSustain; // square sustain to skew param
+    synth.hpfSustain = hpfSustain * hpfSustain;
     synth.hpfRelease = std::exp(-inverseUpdateRate * std::exp(5.5f - 0.075f * hpfReleaseParam->get()));
 
-    synth.hpfEnvDepth = 0.06f * hpfEnvParam->get(); // env depth between -6.0 and 6.0
+    synth.hpfEnvDepth = 0.06f * hpfEnvParam->get();
 }
