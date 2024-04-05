@@ -110,14 +110,7 @@ private:
      Handles the Note Off command.
      */
     void noteOff(int note);
-    
-    // LRN const after function guarantees that the function will
-    //  not change the object it is invoked on (its members)
-    /**
-     Calculates and returns the period given a MIDI note.
-     */
-    float calcPeriod(int voiceIndex, int note) const;
-    
+        
     /**
      Starts a voice.
      */

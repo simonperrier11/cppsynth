@@ -83,19 +83,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
         voice.osc2Level = osc2Level;
         
         if (voice.env.isActive()) {
-            // TODO: general tune and finetune, OSC and noise levels here
-
-            // Glide might affect current period value
-            // updatePeriod(voice);
-            
-            
-            
-            
+            // Update modulation on frequency
             updateFreq(voice);
-            
-            
-            
-            
             voice.glideRate = glideRate;
             
             // Filter values
@@ -223,13 +212,10 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
 {
     Voice& voice = voices[voiceIndex];
 
-    
     // Get frequency for note from MIDI number
     const auto freq = midiNoteNumberToFreq(note, voiceIndex);
     
     voice.setFrequencyAtNote(note, freq);
-    
-//    float period = calcPeriod(voiceIndex, note);
 
     voice.target = freq;
     
@@ -250,25 +236,15 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
      .*/
     // TODO: Change for wavetable
     voice.frequency = freq * std::pow(1.059463094359f, float(noteDistance) - glideBend);
-    
-    // Limit period to small value
-//    if (voice.period < 6.0f) { voice.period = 6.0f; }
-    
+        
     lastNote = note;
     voice.note = note;
     
     // Apply curve to velocity
     // Custom curve with dynamic range -23dB - 0.72dB
     float velocityCurve = 0.004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
-//    voice.osc1.amplitude = velocityCurve * volumeTrim;
-//    voice.osc2.amplitude = voice.osc1.amplitude;
     voice.velocityAmp = velocityCurve * volumeTrim;
-    
-    // Apply levels
-    // TODO: apply change when moving slider
-//    voice.osc1.amplitude = voice.osc1.amplitude * osc1Level;
-//    voice.osc2.amplitude = voice.osc2.amplitude * osc2Level;
-    
+        
     // OSC levels
     voice.osc1Level = osc1Level;
     voice.osc2Level = osc2Level;
@@ -315,7 +291,6 @@ void Synth::restartVoiceLegato(int note, int velocity)
     voice.target = freq;
 
     // Directly set period to voice if glide is off
-    // TODO: Change for wavetable
     if (glideMode == 0) { voice.frequency = freq; }
     
     voice.env.level += constants::SILENCE_TRESHOLD + constants::SILENCE_TRESHOLD;
@@ -356,19 +331,6 @@ void Synth::noteOff(int note)
             }
         }
     }
-}
-
-float Synth::calcPeriod(int voiceIndex, int note) const
-{
-    // Add small analog drift to frequency
-    float freq = 440.0f * std::exp2((float(note - 69 + (constants::ANALOG_DRIFT * float(voiceIndex))) + tune) / 12.0f);
-    float period = sampleRate / freq;
-    
-    // Ensure that the period or detuned pitch of OSC2 is at least 6 samples long,
-    // else we double it. This is because the BLIT based oscillator may not work
-    // too well if the perdio is too small
-    while (period < 6.0f || (period * osc2detune) < 6.0f) { period += period; }
-    return period;
 }
 
 int Synth::findFreeVoice() const
@@ -448,7 +410,6 @@ void Synth::updateLFO()
             Voice& voice = voices[v];
             
             if (voice.env.isActive()) {
-                // TODO: change for wavetable?
                 voice.lpfMod = lpfZip;
                 voice.hpfMod = hpfZip;
                 voice.updateLFO();
@@ -460,7 +421,6 @@ void Synth::updateLFO()
 
 void Synth::updateFreq(Voice &voice)
 {
-    // TODO: master tune
     voice.modFrequencyAtNote(voice.note, pitchBend, vibratoMod, osc2detune);
 }
 

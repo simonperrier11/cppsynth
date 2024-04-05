@@ -18,8 +18,6 @@
 #include "LowPassFilter.h"
 #include "HighPassFilter.h"
 
-// LRN we can use a struct instead of a class when we don't need private/protected
-//  and other inheritance shenanigans (class defaults to private, struct to public)
 /**
  Represents a voice for the synthesizer; produces the next output sample for a given note.
  The synthesizer can have multiple voices in polyphony.
@@ -78,13 +76,10 @@ public:
         env.reset();
         lpf.reset();
         lpfEnv.reset();
-        
         hpf.reset();
         hpfEnv.reset();
-        
         osc1Morph = 0.f;
         osc2Morph = 0.f;
-        
         ringMod = false;
     }
     
@@ -143,18 +138,6 @@ public:
                 output -= interpolatedSample(osc2Morph, sineSample, triSample, squareSample, sawSample) * 0.2f * osc2Level;
             }
         }
-                
-//        // Get next samples for both BLIT oscillators
-//        float sample1 = osc1.nextSample();
-//        float sample2 = osc2.nextSample();
-//        
-//        // Substract osc2 from osc1, and multiply by saw with attenuation
-//        //  to create shape
-//        saw = saw * 0.997f + (sample1 - sample2);
-//        
-        
-        
-        
         
         // Velocity amplitude modifier
         output = output * velocityAmp;
