@@ -18,7 +18,6 @@ namespace ParameterID
     #define PARAMETER_ID(str) const juce::ParameterID str(#str, 1);
 
     // PARAMETER_ID(numVoices)
-    PARAMETER_ID(oscReset)
     PARAMETER_ID(osc1Level)
     PARAMETER_ID(osc2Level)
     PARAMETER_ID(noiseLevel)
@@ -59,6 +58,7 @@ namespace ParameterID
     PARAMETER_ID(polyMode)
     PARAMETER_ID(velocitySensitivity)
     PARAMETER_ID(noiseType)
+    PARAMETER_ID(ringMod)
 
     #undef PARAMETER_ID
 }
@@ -121,7 +121,6 @@ private:
     
     // Parameters accessible to host
     // juce::AudioParameterInt* numVoicesParam;
-    // juce::AudioParameterChoice* oscResetParam;
     juce::AudioParameterFloat* osc1LevelParam;
     juce::AudioParameterFloat* osc2LevelParam;
     juce::AudioParameterFloat* noiseLevelParam;
@@ -162,6 +161,7 @@ private:
     juce::AudioParameterChoice* polyModeParam;
     juce::AudioParameterChoice* velocitySensitivityParam;
     juce::AudioParameterChoice* noiseTypeParam;
+    juce::AudioParameterChoice* ringModParam;
     
     // Atomic (thread-safe) flag to signal a parameter change
     std::atomic<bool> parametersChanged { false };

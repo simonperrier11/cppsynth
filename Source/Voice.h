@@ -33,10 +33,9 @@ public:
     float velocityAmp;
     float osc1Level;
     float osc2Level;
-    float saw;
-    float period; // period = 1 / freq (see Blit.h for why period is used)
     float target; // target for glide
     float glideRate; // copy of synth's glide rate
+    bool ringMod;
     
     // Filters
     LowPassFilter lpf;
@@ -49,10 +48,6 @@ public:
     float hpfMod;
     float lpfEnvDepth;
     float hpfEnvDepth;
-    
-    // Oscillators
-    Blit osc1;
-    Blit osc2;
     
     // OSC wavetables
     std::vector<WavetableOscillator> sineTableOsc1;
@@ -80,9 +75,6 @@ public:
     void reset()
     {
         note = constants::NO_NOTE_VALUE;
-        saw = 0.0f;
-        osc1.reset();
-        osc2.reset();
         env.reset();
         lpf.reset();
         lpfEnv.reset();
@@ -92,6 +84,8 @@ public:
         
         osc1Morph = 0.f;
         osc2Morph = 0.f;
+        
+        ringMod = false;
     }
     
     /**
@@ -142,7 +136,12 @@ public:
             float squareSample = squareTableOsc2[note].getSample();
             float sawSample = sawTableOsc2[note].getSample();
             
-            output -= interpolatedSample(osc2Morph, sineSample, triSample, squareSample, sawSample) * 0.2f * osc2Level;
+            if (ringMod) {
+                output *= interpolatedSample(osc2Morph, sineSample, triSample, squareSample, sawSample) * osc2Level;
+            }
+            else {
+                output -= interpolatedSample(osc2Morph, sineSample, triSample, squareSample, sawSample) * 0.2f * osc2Level;
+            }
         }
                 
 //        // Get next samples for both BLIT oscillators

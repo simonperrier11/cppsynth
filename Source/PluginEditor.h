@@ -132,6 +132,8 @@ private:
     ButtonAttachment noiseTypeAttachment { audioProcessor.apvts, ParameterID::noiseType.getParamID(), noiseTypeButton };
     juce::TextButton velocitySensitivityButton;
     ButtonAttachment velocitySensitivityAttachment { audioProcessor.apvts, ParameterID::velocitySensitivity.getParamID(), velocitySensitivityButton };
+    juce::TextButton ringModButton;
+    ButtonAttachment ringModAttachment { audioProcessor.apvts, ParameterID::ringMod.getParamID(), ringModButton };
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CppsynthAudioProcessorEditor)
 };

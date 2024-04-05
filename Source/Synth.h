@@ -50,7 +50,7 @@ public:
     int glideMode;
     int noiseType; // 0: White; 1: Pink
     bool ignoreVelocity;
-    bool oscReset;
+    bool ringMod;
     // TODO: apply smoothing technique to some other params as well (osc mix, etc.)
     juce::LinearSmoothedValue<float> outputLevelSmoother;
     
@@ -138,12 +138,7 @@ private:
      Updates the synth's LFO .
      */
     void updateLFO();
-    
-    /**
-     Updates the oscillators period if the voice changes it (while gliding, for example).
-     */
-    void updatePeriod(Voice& voice);
-    
+        
     /**
      Updates the oscillators frequency if the voice changes it (while gliding or pitch bending, for example).
      */

@@ -59,6 +59,9 @@ void Synth::reset()
     lastNote = 0;
     lpfZip = 0;
     hpfZip = 0;
+    
+    ringMod = false;
+    ignoreVelocity = false;
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -70,6 +73,10 @@ void Synth::render(float** outputBuffers, int sampleCount)
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         Voice& voice = voices[v];
         
+        // Update voice ring mod
+        voice.ringMod = ringMod;
+        
+        // Update OSC settings
         voice.osc1Morph = osc1Morph;
         voice.osc2Morph = osc2Morph;
         voice.osc1Level = osc1Level;
@@ -249,12 +256,6 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     
     lastNote = note;
     voice.note = note;
-    
-    // Reset oscillators when starting voice
-    if (oscReset) {
-        voice.osc1.reset();
-        voice.osc2.reset();
-    }
     
     // Apply curve to velocity
     // Custom curve with dynamic range -23dB - 0.72dB
@@ -455,12 +456,6 @@ void Synth::updateLFO()
             }
         }
     }
-}
-
-void Synth::updatePeriod(Voice &voice)
-{
-    voice.osc1.period = voice.period * pitchBend;
-    voice.osc2.period = voice.osc1.period * osc2detune;
 }
 
 void Synth::updateFreq(Voice &voice)

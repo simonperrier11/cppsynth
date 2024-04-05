@@ -22,9 +22,6 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
     addAndMakeVisible(osc1MorphKnob);
 
     // Noise
-    noiseTypeButton.setButtonText(juce::CharPointer_UTF8("Noise Type"));
-    noiseTypeButton.setClickingTogglesState(true);
-    addAndMakeVisible(noiseTypeButton);
     noiseLevelKnob.label = "Level";
     addAndMakeVisible(noiseLevelKnob);
     
@@ -94,19 +91,29 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
     vibratoKnob.label = "Depth";
     addAndMakeVisible(vibratoKnob);
 
+    // Toggles
+    polyModeButton.setButtonText(juce::CharPointer_UTF8("Poly"));
+    polyModeButton.setClickingTogglesState(true);
+    addAndMakeVisible(polyModeButton);
+    velocitySensitivityButton.setButtonText(juce::CharPointer_UTF8("Velocity"));
+    velocitySensitivityButton.setClickingTogglesState(true);
+    addAndMakeVisible(velocitySensitivityButton);
+    noiseTypeButton.setButtonText(juce::CharPointer_UTF8("White/Pink"));
+    noiseTypeButton.setClickingTogglesState(true);
+    addAndMakeVisible(noiseTypeButton);
+    ringModButton.setButtonText(juce::CharPointer_UTF8("Ring Mod"));
+    ringModButton.setClickingTogglesState(true);
+    addAndMakeVisible(ringModButton);
 
-
-//    polyModeButton.setButtonText(juce::CharPointer_UTF8("Poly"));
-//    polyModeButton.setClickingTogglesState(true);
-//    addAndMakeVisible(polyModeButton);
-//    outputLevelKnob.label = "Output Level";
-//    addAndMakeVisible(outputLevelKnob);
+    // Master output
+    outputLevelKnob.label = "Master";
+    addAndMakeVisible(outputLevelKnob);
     
-//    // Plugin size on open
 //    setResizable(true, false);
 //    // LRN: minX, minY, maxX, maxY
 //    setResizeLimits(600, 400, 1400, 1000);
-    setSize(1100, 500);
+    // Plugin size
+    setSize(1100, 510);
 }
 
 CppsynthAudioProcessorEditor::~CppsynthAudioProcessorEditor()
@@ -135,6 +142,7 @@ void CppsynthAudioProcessorEditor::resized()
     juce::Rectangle lpfEnvElem(465 + 120, 20, 80, 100);
     juce::Rectangle hpfElem(575 + 120, 20, 80, 100);
     juce::Rectangle hpfEnvElem(660 + 120, 20, 80, 100);
+    juce::Rectangle lastColElem(780 + 120, 20, 80, 100);
     
     // OSC1
     osc1LevelKnob.setBounds(osc1Elem);
@@ -168,7 +176,7 @@ void CppsynthAudioProcessorEditor::resized()
     envReleaseKnob.setBounds(envElem);
     envElem = envElem.withY(envElem.getBottom() + 20);
     
-    // OSC1
+    // LFO
     lfoRateKnob.setBounds(lfoElem);
     lfoElem = lfoElem.withY(lfoElem.getBottom() + 20);
     vibratoKnob.setBounds(lfoElem);
@@ -213,10 +221,14 @@ void CppsynthAudioProcessorEditor::resized()
     hpfEnvElem = hpfEnvElem.withY(hpfEnvElem.getBottom() + 20);
     hpfReleaseKnob.setBounds(hpfEnvElem);
     hpfEnvElem = hpfEnvElem.withY(hpfEnvElem.getBottom() + 20);
-
-//    polyModeButton.setSize(80, 30);
-//    polyModeButton.setCentrePosition(r.withX(r.getRight()).getCentre());
-//    outputLevelKnob.setBounds(r);
-//    r = r.withX(r.getRight() + 20);
-//
+    
+    // Master & other settings
+    outputLevelKnob.setBounds(lastColElem);
+    lastColElem = lastColElem.withY(lastColElem.getBottom() + 20);
+    polyModeButton.setBounds(lastColElem);
+    lastColElem = lastColElem.withY(lastColElem.getBottom() + 20);
+    velocitySensitivityButton.setBounds(lastColElem);
+    lastColElem = lastColElem.withY(lastColElem.getBottom() + 20);
+    ringModButton.setBounds(lastColElem);
+    lastColElem = lastColElem.withY(lastColElem.getBottom() + 20);
 }

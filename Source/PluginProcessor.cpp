@@ -30,7 +30,6 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
 
     // Assign each identified parameter in the APVTS to a variable
     // castJuceParameter(apvts, ParameterID::numVoices, numVoicesParam);
-    // castJuceParameter(apvts, ParameterID::oscReset, oscResetParam);
     castJuceParameter(apvts, ParameterID::osc1Level, osc1LevelParam);
     castJuceParameter(apvts, ParameterID::osc2Level, osc2LevelParam);
     castJuceParameter(apvts, ParameterID::noiseLevel, noiseLevelParam);
@@ -71,6 +70,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::polyMode, polyModeParam);
     castJuceParameter(apvts, ParameterID::velocitySensitivity, velocitySensitivityParam);
     castJuceParameter(apvts, ParameterID::noiseType, noiseTypeParam);
+    castJuceParameter(apvts, ParameterID::ringMod, ringModParam);
     
     // Add listener for parameter changes
     apvts.state.addListener(this);
@@ -372,17 +372,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                             "Polyphony",
                                                             juce::StringArray { "Mono", "Poly" },
                                                             0));
-    
-//    // OSC reset on new note
-//    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::oscReset,
-//                                                            "OSC Reset",
-//                                                            juce::StringArray { "On", "Off" },
-//                                                            1));
-    
+        
     // Velocity sensitivity toggle
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::velocitySensitivity,
                                                             "Velocity Sensitivity",
-                                                            juce::StringArray { "On", "Off" },
+                                                            juce::StringArray { "Off", "On" },
+                                                            1));
+    
+    // Velocity sensitivity toggle
+    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::ringMod,
+                                                            "Ring Mod",
+                                                            juce::StringArray { "Off", "On" },
                                                             0));
     
     // TODO: dynamically change number of voices
@@ -723,9 +723,6 @@ void CppsynthAudioProcessor::update()
     // Mono/unisson/poly mode
     synth.polyMode = polyModeParam->getIndex();
     
-    // OSC reset
-    // synth.oscReset = (oscResetParam->getIndex() == 0 ? true : false);
-    
     // Noise type
     synth.noiseType = noiseTypeParam->getIndex();
     
@@ -760,7 +757,10 @@ void CppsynthAudioProcessor::update()
 //    }
     
     // Velocity sensitivity toggle
-    synth.ignoreVelocity = (velocitySensitivityParam->getIndex() == 0 ? false : true);
+    synth.ignoreVelocity = (velocitySensitivityParam->getIndex() == 0 ? true : false);
+    
+    // Ring mod
+    synth.ringMod = (ringModParam->getIndex() == 0 ? false : true);
     
     // LFO
     // Skew parameter value to 0.02Hz-20Hz approx.
