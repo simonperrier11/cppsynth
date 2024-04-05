@@ -121,7 +121,7 @@ private:
     
     // Parameters accessible to host
     // juce::AudioParameterInt* numVoicesParam;
-    juce::AudioParameterChoice* oscResetParam;
+    // juce::AudioParameterChoice* oscResetParam;
     juce::AudioParameterFloat* osc1LevelParam;
     juce::AudioParameterFloat* osc2LevelParam;
     juce::AudioParameterFloat* noiseLevelParam;

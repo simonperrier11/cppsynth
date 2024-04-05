@@ -30,7 +30,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
 
     // Assign each identified parameter in the APVTS to a variable
     // castJuceParameter(apvts, ParameterID::numVoices, numVoicesParam);
-    castJuceParameter(apvts, ParameterID::oscReset, oscResetParam);
+    // castJuceParameter(apvts, ParameterID::oscReset, oscResetParam);
     castJuceParameter(apvts, ParameterID::osc1Level, osc1LevelParam);
     castJuceParameter(apvts, ParameterID::osc2Level, osc2LevelParam);
     castJuceParameter(apvts, ParameterID::noiseLevel, noiseLevelParam);
@@ -373,11 +373,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                             juce::StringArray { "Mono", "Poly" },
                                                             0));
     
-    // OSC reset on new note
-    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::oscReset,
-                                                            "OSC Reset",
-                                                            juce::StringArray { "On", "Off" },
-                                                            1));
+//    // OSC reset on new note
+//    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::oscReset,
+//                                                            "OSC Reset",
+//                                                            juce::StringArray { "On", "Off" },
+//                                                            1));
     
     // Velocity sensitivity toggle
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::velocitySensitivity,
@@ -724,7 +724,7 @@ void CppsynthAudioProcessor::update()
     synth.polyMode = polyModeParam->getIndex();
     
     // OSC reset
-    synth.oscReset = (oscResetParam->getIndex() == 0 ? true : false);
+    // synth.oscReset = (oscResetParam->getIndex() == 0 ? true : false);
     
     // Noise type
     synth.noiseType = noiseTypeParam->getIndex();
