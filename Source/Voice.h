@@ -123,8 +123,14 @@ public:
             float squareSample = squareTableOsc1[note].getSample();
             float sawSample = sawTableOsc1[note].getSample();
             
-            output += interpolatedSample(osc1Morph, sineSample, triSample, squareSample, sawSample) * 0.2f * osc1Level;
+            if (ringMod) {
+                output += interpolatedSample(osc1Morph, sineSample, triSample, squareSample, sawSample) * 0.4f * osc1Level;
+            }
+            else {
+                output += interpolatedSample(osc1Morph, sineSample, triSample, squareSample, sawSample) * 0.2f * osc1Level;
+            }
         }
+        
         if (sineTableOsc2[note].isPlaying()) {
             float sineSample = sineTableOsc2[note].getSample();
             float triSample = triTableOsc2[note].getSample();
@@ -232,7 +238,6 @@ public:
 
         return sawWavetable;
     }
-
     
     /**
      Returns the interpolated sample across the four wave shapes.
