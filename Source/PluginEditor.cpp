@@ -108,8 +108,8 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
     // MASTER
     outputLevelKnob.label = "Master";
     addAndMakeVisible(outputLevelKnob);
-    octaveKnob.label = "Octave";
-    addAndMakeVisible(octaveKnob);
+//    octaveKnob.label = "Octave";
+//    addAndMakeVisible(octaveKnob);
     tuningKnob.label = "Finetune";
     addAndMakeVisible(tuningKnob);
     
@@ -117,7 +117,7 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
 //    // LRN: minX, minY, maxX, maxY
 //    setResizeLimits(600, 400, 1400, 1000);
     // Plugin size
-    setSize(1200, 510);
+    setSize(1125, 510);
 }
 
 CppsynthAudioProcessorEditor::~CppsynthAudioProcessorEditor()
@@ -230,8 +230,8 @@ void CppsynthAudioProcessorEditor::resized()
     // Master
     outputLevelKnob.setBounds(masterElem);
     masterElem = masterElem.withY(masterElem.getBottom() + 20);
-    octaveKnob.setBounds(masterElem);
-    masterElem = masterElem.withY(masterElem.getBottom() + 20);
+//    octaveKnob.setBounds(masterElem);
+//    masterElem = masterElem.withY(masterElem.getBottom() + 20);
     tuningKnob.setBounds(masterElem);
     masterElem = masterElem.withY(masterElem.getBottom() + 20);
 

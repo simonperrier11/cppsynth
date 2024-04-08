@@ -371,7 +371,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::polyMode, 
                                                             "Polyphony",
                                                             juce::StringArray { "Mono", "Poly" },
-                                                            0));
+                                                            1));
         
     // Velocity sensitivity toggle
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::velocitySensitivity,
