@@ -105,15 +105,19 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
     ringModButton.setClickingTogglesState(true);
     addAndMakeVisible(ringModButton);
 
-    // Master output
+    // MASTER
     outputLevelKnob.label = "Master";
     addAndMakeVisible(outputLevelKnob);
+    octaveKnob.label = "Octave";
+    addAndMakeVisible(octaveKnob);
+    tuningKnob.label = "Finetune";
+    addAndMakeVisible(tuningKnob);
     
 //    setResizable(true, false);
 //    // LRN: minX, minY, maxX, maxY
 //    setResizeLimits(600, 400, 1400, 1000);
     // Plugin size
-    setSize(1100, 510);
+    setSize(1200, 510);
 }
 
 CppsynthAudioProcessorEditor::~CppsynthAudioProcessorEditor()
@@ -142,7 +146,8 @@ void CppsynthAudioProcessorEditor::resized()
     juce::Rectangle lpfEnvElem(465 + 120, 20, 80, 100);
     juce::Rectangle hpfElem(575 + 120, 20, 80, 100);
     juce::Rectangle hpfEnvElem(660 + 120, 20, 80, 100);
-    juce::Rectangle lastColElem(780 + 120, 20, 80, 100);
+    juce::Rectangle masterElem(780 + 120, 20, 80, 100);
+    juce::Rectangle lastColElem(900 + 120, 20, 80, 100);
     
     // OSC1
     osc1LevelKnob.setBounds(osc1Elem);
@@ -222,9 +227,15 @@ void CppsynthAudioProcessorEditor::resized()
     hpfReleaseKnob.setBounds(hpfEnvElem);
     hpfEnvElem = hpfEnvElem.withY(hpfEnvElem.getBottom() + 20);
     
-    // Master & other settings
-    outputLevelKnob.setBounds(lastColElem);
-    lastColElem = lastColElem.withY(lastColElem.getBottom() + 20);
+    // Master
+    outputLevelKnob.setBounds(masterElem);
+    masterElem = masterElem.withY(masterElem.getBottom() + 20);
+    octaveKnob.setBounds(masterElem);
+    masterElem = masterElem.withY(masterElem.getBottom() + 20);
+    tuningKnob.setBounds(masterElem);
+    masterElem = masterElem.withY(masterElem.getBottom() + 20);
+
+    // Other settings
     polyModeButton.setBounds(lastColElem);
     lastColElem = lastColElem.withY(lastColElem.getBottom() + 20);
     velocitySensitivityButton.setBounds(lastColElem);

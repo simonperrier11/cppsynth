@@ -46,8 +46,13 @@ private:
     // LRN By making a RotaryKnob object a regular member variable of the editor,
     //  it is instantiated when the editor window is opened.
     //  It is automatically destroyed when the editor window is closed.
+    // MASTER
     RotaryKnob outputLevelKnob;
     SliderAttachment outputLevelAttachment { audioProcessor.apvts, ParameterID::outputLevel.getParamID(), outputLevelKnob.slider };
+    RotaryKnob octaveKnob;
+    SliderAttachment octaveAttachment { audioProcessor.apvts, ParameterID::octave.getParamID(), octaveKnob.slider };
+    RotaryKnob tuningKnob;
+    SliderAttachment tuningAttachment { audioProcessor.apvts, ParameterID::tuning.getParamID(), tuningKnob.slider };
 
     // OSC1
     RotaryKnob osc1LevelKnob;
