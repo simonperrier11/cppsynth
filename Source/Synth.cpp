@@ -60,6 +60,8 @@ void Synth::reset()
     lpfZip = 0;
     hpfZip = 0;
     
+    while (!heldNotesMono.empty()) { heldNotesMono.pop(); }
+    
     ringMod = false;
     ignoreVelocity = false;
 }
@@ -280,7 +282,7 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     hpfEnv.attack();
 }
 
-void Synth::restartVoiceLegato(int note, int velocity)
+void Synth::restartMonoVoice(int note, int velocity)
 {
     Voice& voice = voices[0];
 
@@ -307,8 +309,11 @@ void Synth::noteOn(int note, int velocity)
     int v = 0; // Voice index
     
     if (polyMode == 0) { // Mono
-        if (voices[0].note > 0) { // Legato
-            restartVoiceLegato(note, velocity);
+        heldNotesMono.push(note);
+
+        // Legato : we received another noteOn while the note still has a value
+        if (voices[0].note > constants::NO_NOTE_VALUE) {
+            restartMonoVoice(note, velocity);
             return;
         }
     }
@@ -321,6 +326,15 @@ void Synth::noteOn(int note, int velocity)
 
 void Synth::noteOff(int note)
 {
+    // Play previously held note in mono mode (last note priority)
+    if (polyMode == 0) {
+        heldNotesMono.pop();
+
+        if (!heldNotesMono.empty() && voices[0].note == note) {
+            restartMonoVoice(heldNotesMono.top(), -1);
+        }
+    }
+
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         if (voices[v].note == note) {
             if (sustainPressed) {

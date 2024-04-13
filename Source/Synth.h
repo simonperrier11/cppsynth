@@ -13,6 +13,7 @@
 // LRN include <file.h> for std lib stuff or stuff in predefined directory,
 //  "file.h" for programmer-defined stuff
 #include <JuceHeader.h>
+#include <stack>
 #include "Constants.h"
 #include "Voice.h"
 #include "WhiteNoise.h"
@@ -89,6 +90,7 @@ public:
 private:
     int lfoStep; // counter from LFO max value to 0
     int lastNote; // keep track of last note for glide
+    std::stack<int> heldNotesMono;
     float sampleRate;
     float pitchBend;
     float lfo; // current phase of LFO sine wave
@@ -117,9 +119,10 @@ private:
     void startVoice(int voiceIndex, int note, int velocity);
     
     /**
-     When playing legato in mono mode, this is used when pressing a new note.
+     When playing in mono mode, this is used when pressing a new note while the voice still
+     has a value (eg.: when previous keys are held).
      */
-    void restartVoiceLegato(int note, int velocity);
+    void restartMonoVoice(int note, int velocity);
     
     /**
      Finds a free voice to use for the next note played when all voices are in use. This will be the 
