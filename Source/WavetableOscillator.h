@@ -20,8 +20,6 @@
 class WavetableOscillator
 {
 public:
-    float amplitude;
-    float modulation;
     float initFrequency = 0; // Original frequency before modulation
 
     WavetableOscillator(std::vector<float> waveTable, float sampleRate);
