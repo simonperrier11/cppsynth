@@ -37,6 +37,16 @@ private:
     // Global style
     LookAndFeel globalLNF;
     
+    // Generic labels to identify sections
+    juce::Label osc1Label;
+    juce::Label osc2Label;
+    juce::Label noiseLabel;
+    juce::Label envLabel;
+    juce::Label lfoLabel;
+    juce::Label lpfLabel;
+    juce::Label hpfLabel;
+    juce::Label masterLabel;
+    
     // LRN using here is used to set shortcut for class names (aliasing)
     using APVTS = juce::AudioProcessorValueTreeState;
     using SliderAttachment = APVTS::SliderAttachment;
