@@ -198,7 +198,7 @@ public:
         auto triangleWaveTable = std::vector<float>(constants::WAVETABLE_LENGTH, 0.f);
 
         // For the triangle wavetable, I feel that 13 harmonics is enough
-        int harmonicsCount = 13;
+        int harmonicsCount = 10;
 
         for (auto k = 1; k <= harmonicsCount; ++k) {
             for (auto j = 0; j < constants::WAVETABLE_LENGTH; ++j) {
@@ -274,8 +274,8 @@ public:
         auto sawTab2 = generateSawWavetable(256);
         auto sawTab3 = generateSawWavetable(128);
         auto sawTab4 = generateSawWavetable(72);
-        auto sawTab5 = generateSawWavetable(40);
-        auto sawTab6 = generateSawWavetable(19);
+        auto sawTab5 = generateSawWavetable(50);
+        auto sawTab6 = generateSawWavetable(25);
         auto sawTab7 = generateSawWavetable(10);
         auto sawTab8 = generateSawWavetable(5);
         
@@ -284,9 +284,9 @@ public:
         auto sqrTab2 = generateSquareWavetable(256);
         auto sqrTab3 = generateSquareWavetable(110);
         auto sqrTab4 = generateSquareWavetable(60);
-        auto sqrTab5 = generateSquareWavetable(30);
-        auto sqrTab6 = generateSquareWavetable(10);
-        auto sqrTab7 = generateSquareWavetable(7);
+        auto sqrTab5 = generateSquareWavetable(40);
+        auto sqrTab6 = generateSquareWavetable(20);
+        auto sqrTab7 = generateSquareWavetable(10);
         auto sqrTab8 = generateSquareWavetable(5);
                 
         // Clear oscillators wavetables
