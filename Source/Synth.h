@@ -87,6 +87,11 @@ public:
      */
     void controlChange(uint8_t data1, uint8_t data2);
     
+    /**
+     Empties the held note stack. Useful when resetting synth or changing mono/poly modes.
+     */
+    void emptyHeldNotes();
+
 private:
     int lfoStep; // counter from LFO max value to 0
     int lastNote; // keep track of last note for glide

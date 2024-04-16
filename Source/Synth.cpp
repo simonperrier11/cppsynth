@@ -60,7 +60,7 @@ void Synth::reset()
     lpfZip = 0;
     hpfZip = 0;
     
-    while (!heldNotesMono.empty()) { heldNotesMono.pop(); }
+    emptyHeldNotes();
     
     ringMod = false;
     ignoreVelocity = false;
@@ -173,7 +173,7 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
     // channel (last 4 bits). We simply need to do a binary AND with 11110000
     // and 00001111 to get both parts respectively
     uint8_t command = data0 & 0xF0;
-    uint8_t channel = data0 & 0x0F;
+    // uint8_t channel = data0 & 0x0F;
     
     // Force set values to 0-127 range by doing binary AND, just in case
     uint8_t note = data1 & 0x7F;
@@ -318,6 +318,7 @@ void Synth::noteOn(int note, int velocity)
         }
     }
     else { // Poly
+        if (!heldNotesMono.empty()) { emptyHeldNotes(); }
         v = findFreeVoice();
     }
     
@@ -328,11 +329,16 @@ void Synth::noteOff(int note)
 {
     // Play previously held note in mono mode (last note priority)
     if (polyMode == 0) {
-        heldNotesMono.pop();
+        if (!heldNotesMono.empty()) {
+            heldNotesMono.pop();
+        }
 
         if (!heldNotesMono.empty() && voices[0].note == note) {
             restartMonoVoice(heldNotesMono.top(), -1);
         }
+    }
+    else {
+        if (!heldNotesMono.empty()) { emptyHeldNotes(); }
     }
 
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
@@ -451,4 +457,9 @@ bool Synth::isPlayingLegatoStyle() const
         if (voices[i].note > 0) { held += 1; }
     }
     return held > 0;
+}
+
+void Synth::emptyHeldNotes()
+{
+    while (!heldNotesMono.empty()) { heldNotesMono.pop(); }
 }
