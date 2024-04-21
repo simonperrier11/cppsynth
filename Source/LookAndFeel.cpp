@@ -18,7 +18,6 @@ LookAndFeel::LookAndFeel()
     setDefaultSansSerifTypeface(typeface);
     
     // Default accent color
-    // TODO: override for specific parts of synth maybe
     auto accentColor = juce::Colour(220, 220, 220);
     
     // Plugin background

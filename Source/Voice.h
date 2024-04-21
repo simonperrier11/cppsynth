@@ -12,7 +12,6 @@
 
 #include <JuceHeader.h>
 #include "Constants.h"
-#include "Blit.h"
 #include "WavetableOscillator.h"
 #include "Envelope.h"
 #include "LowPassFilter.h"

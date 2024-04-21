@@ -19,6 +19,7 @@ RotaryKnob::RotaryKnob()
 {
     slider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 100, textBoxHeight);
+    
     // Make knob angles a little less intese
     slider.setRotaryParameters(juce::degreesToRadians(225.0f), juce::degreesToRadians(495.0f), true);
     addAndMakeVisible(slider);
