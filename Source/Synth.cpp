@@ -35,7 +35,6 @@ void Synth::allocateResources(double sampleRate_, int /*samplesPerBlock*/) {
 
 void Synth::deallocateResources()
 {
-    // TODO
 }
 
 void Synth::reset()
@@ -57,6 +56,7 @@ void Synth::reset()
     lfoStep = 0;
     modWheel = 0;
     lastNote = 0;
+    lastVelocity = 0;
     lpfZip = 0;
     hpfZip = 0;
     
@@ -140,7 +140,6 @@ void Synth::render(float** outputBuffers, int sampleCount)
 
         // Write value in left and right buffers
         if (outputBufferRight != nullptr) {
-            // TODO: implement stereophony
             outputBufferLeft[sample] = outputLeft;
             outputBufferRight[sample] = outputRight;
         }
@@ -179,8 +178,6 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
     uint8_t note = data1 & 0x7F;
     uint8_t velocity = data2 & 0x7F;
 
-    DBG(note);
-    
     switch (command) {
         case 0x80: { // Note Off command code
             noteOff(note);
@@ -240,6 +237,8 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     voice.frequency = freq * std::pow(1.059463094359f, float(noteDistance) - glideBend);
         
     lastNote = note;
+    lastVelocity = velocity;
+    
     voice.note = note;
     
     // Apply curve to velocity
@@ -282,23 +281,6 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     hpfEnv.attack();
 }
 
-void Synth::restartMonoVoice(int note, int velocity)
-{
-    Voice& voice = voices[0];
-
-    const auto freq = midiNoteNumberToFreq(note, 0);
-    
-    voice.setFrequencyAtNote(note, freq);
-
-    voice.target = freq;
-
-    // Directly set period to voice if glide is off
-    if (glideMode == 0) { voice.frequency = freq; }
-    
-    voice.env.level += constants::SILENCE_TRESHOLD + constants::SILENCE_TRESHOLD;
-    voice.note = note;
-}
-
 void Synth::noteOn(int note, int velocity)
 {
     // Disables velocity of note (force to 80)
@@ -310,15 +292,9 @@ void Synth::noteOn(int note, int velocity)
     
     if (polyMode == 0) { // Mono
         heldNotesMono.push(note);
-
-        // Legato : we received another noteOn while the note still has a value
-        if (voices[0].note > constants::NO_NOTE_VALUE) {
-            restartMonoVoice(note, velocity);
-            return;
-        }
     }
     else { // Poly
-        if (!heldNotesMono.empty()) { emptyHeldNotes(); }
+        emptyHeldNotes(); // clear mono held notes to prevent issues
         v = findFreeVoice();
     }
     
@@ -327,26 +303,25 @@ void Synth::noteOn(int note, int velocity)
 
 void Synth::noteOff(int note)
 {
-    // Play previously held note in mono mode (last note priority)
-    if (polyMode == 0) {
-        if (!heldNotesMono.empty()) {
-            heldNotesMono.pop();
+    if (note != constants::SUSTAINED_NOTE_VALUE) {
+        if (polyMode == 0) {
+            if (!heldNotesMono.empty()) {
+                heldNotesMono.pop(); // Remove released note from held notes
+            }
+            
+            // Play previously held note if any (last note priority)
+            if (!heldNotesMono.empty() && voices[0].note == note) {
+                startVoice(0, heldNotesMono.top(), lastVelocity);
+            }
         }
-
-        if (!heldNotesMono.empty() && voices[0].note == note) {
-            restartMonoVoice(heldNotesMono.top(), -1);
+        else {
+            emptyHeldNotes(); // clear mono held notes to prevent issues
         }
-    }
-    else {
-        if (!heldNotesMono.empty()) { emptyHeldNotes(); }
     }
 
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         if (voices[v].note == note) {
-            if (sustainPressed) {
-                voices[v].note = constants::SUSTAINED_NOTE_VALUE;
-            }
-            else {
+            if (!sustainPressed) {
                 voices[v].release();
             }
         }
@@ -383,8 +358,7 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
             
             // Sustain pedal is lifted
             if (!sustainPressed) {
-                // Call noteOff on all previously sustained notes
-                noteOff(constants::SUSTAINED_NOTE_VALUE);
+                for (int v = 0; v < constants::MAX_VOICES; ++v) { voices[v].release(); }
             }
             break;
         }
@@ -461,5 +435,7 @@ bool Synth::isPlayingLegatoStyle() const
 
 void Synth::emptyHeldNotes()
 {
-    while (!heldNotesMono.empty()) { heldNotesMono.pop(); }
+    if (!heldNotesMono.empty()) {
+        while (!heldNotesMono.empty()) { heldNotesMono.pop(); }
+    }
 }

@@ -95,6 +95,7 @@ public:
 private:
     int lfoStep; // counter from LFO max value to 0
     int lastNote; // keep track of last note for glide
+    int lastVelocity;
     std::stack<int> heldNotesMono;
     float sampleRate;
     float pitchBend;
@@ -122,13 +123,7 @@ private:
      Starts a voice.
      */
     void startVoice(int voiceIndex, int note, int velocity);
-    
-    /**
-     When playing in mono mode, this is used when pressing a new note while the voice still
-     has a value (eg.: when previous keys are held).
-     */
-    void restartMonoVoice(int note, int velocity);
-    
+        
     /**
      Finds a free voice to use for the next note played when all voices are in use. This will be the 
      quietest voice that is not in the attack stage. The index of the voice is returned.
