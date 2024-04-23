@@ -17,16 +17,16 @@ namespace ParameterID
 {
     #define PARAMETER_ID(str) const juce::ParameterID str(#str, 1);
 
-    // PARAMETER_ID(numVoices)
-    PARAMETER_ID(oscReset)
     PARAMETER_ID(osc1Level)
     PARAMETER_ID(osc2Level)
     PARAMETER_ID(noiseLevel)
     PARAMETER_ID(oscTune)
     PARAMETER_ID(oscFine)
-    PARAMETER_ID(glideMode)
-    PARAMETER_ID(glideRate)
-    PARAMETER_ID(glideBend)
+    PARAMETER_ID(osc1Morph)
+    PARAMETER_ID(osc2Morph)
+//    PARAMETER_ID(glideMode)
+//    PARAMETER_ID(glideRate)
+//    PARAMETER_ID(glideBend)
     PARAMETER_ID(lpfFreq)
     PARAMETER_ID(lpfReso)
     PARAMETER_ID(lpfEnv)
@@ -57,6 +57,7 @@ namespace ParameterID
     PARAMETER_ID(polyMode)
     PARAMETER_ID(velocitySensitivity)
     PARAMETER_ID(noiseType)
+    PARAMETER_ID(ringMod)
 
     #undef PARAMETER_ID
 }
@@ -118,16 +119,16 @@ private:
     Synth synth;
     
     // Parameters accessible to host
-    // juce::AudioParameterInt* numVoicesParam;
-    juce::AudioParameterChoice* oscResetParam;
     juce::AudioParameterFloat* osc1LevelParam;
     juce::AudioParameterFloat* osc2LevelParam;
     juce::AudioParameterFloat* noiseLevelParam;
     juce::AudioParameterFloat* oscTuneParam;
     juce::AudioParameterFloat* oscFineParam;
-    juce::AudioParameterChoice* glideModeParam;
-    juce::AudioParameterFloat* glideRateParam;
-    juce::AudioParameterFloat* glideBendParam;
+    juce::AudioParameterFloat* osc1MorphParam;
+    juce::AudioParameterFloat* osc2MorphParam;
+//    juce::AudioParameterChoice* glideModeParam;
+//    juce::AudioParameterFloat* glideRateParam;
+//    juce::AudioParameterFloat* glideBendParam;
     juce::AudioParameterFloat* lpfFreqParam;
     juce::AudioParameterFloat* lpfResoParam;
     juce::AudioParameterFloat* lpfEnvParam;
@@ -158,6 +159,7 @@ private:
     juce::AudioParameterChoice* polyModeParam;
     juce::AudioParameterChoice* velocitySensitivityParam;
     juce::AudioParameterChoice* noiseTypeParam;
+    juce::AudioParameterChoice* ringModParam;
     
     // Atomic (thread-safe) flag to signal a parameter change
     std::atomic<bool> parametersChanged { false };

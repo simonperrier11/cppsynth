@@ -13,6 +13,7 @@
 // LRN include <file.h> for std lib stuff or stuff in predefined directory,
 //  "file.h" for programmer-defined stuff
 #include <JuceHeader.h>
+#include <stack>
 #include "Constants.h"
 #include "Voice.h"
 #include "WhiteNoise.h"
@@ -28,11 +29,13 @@ public:
     float envAttack, envDecay, envSustain, envRelease;
     float tune;
     float osc2detune;
+    float osc1Morph, osc2Morph;
     float volumeTrim;
     float velocitySensitivity;
     float lfoInc; // phase increment for LFO (between 0 and 2pi)
     float vibrato; // pitch LFO depth
     float modWheel;
+    float vibratoMod;
     float glideRate; // speed of glide
     float glideBend; // adds a glide up or down before new notes
     float lpfCutoff, lpfQ;
@@ -48,7 +51,7 @@ public:
     int glideMode;
     int noiseType; // 0: White; 1: Pink
     bool ignoreVelocity;
-    bool oscReset;
+    bool ringMod;
     // TODO: apply smoothing technique to some other params as well (osc mix, etc.)
     juce::LinearSmoothedValue<float> outputLevelSmoother;
     
@@ -84,9 +87,16 @@ public:
      */
     void controlChange(uint8_t data1, uint8_t data2);
     
+    /**
+     Empties the held note stack. Useful when resetting synth or changing mono/poly modes.
+     */
+    void emptyHeldNotes();
+
 private:
     int lfoStep; // counter from LFO max value to 0
     int lastNote; // keep track of last note for glide
+    int lastVelocity;
+    std::stack<int> heldNotesMono;
     float sampleRate;
     float pitchBend;
     float lfo; // current phase of LFO sine wave
@@ -108,24 +118,12 @@ private:
      Handles the Note Off command.
      */
     void noteOff(int note);
-    
-    // LRN const after function guarantees that the function will
-    //  not change the object it is invoked on (its members)
-    /**
-     Calculates and returns the period given a MIDI note.
-     */
-    float calcPeriod(int voiceIndex, int note) const;
-    
+        
     /**
      Starts a voice.
      */
     void startVoice(int voiceIndex, int note, int velocity);
-    
-    /**
-     When playing legato in mono mode, this is used when pressing a new note.
-     */
-    void restartVoiceLegato(int note, int velocity);
-    
+        
     /**
      Finds a free voice to use for the next note played when all voices are in use. This will be the 
      quietest voice that is not in the attack stage. The index of the voice is returned.
@@ -136,17 +134,21 @@ private:
      Updates the synth's LFO .
      */
     void updateLFO();
+        
+    /**
+     Updates the oscillators frequency if the voice changes it (while gliding or pitch bending, for example).
+     */
+    void updateFreq(Voice& voice);
     
     /**
-     Updates the oscillators period if the voice changes it (while gliding, for example).
+     Converts a MIDI note number to a frequency in hertz. Adds analog drift with voice index.
      */
-    void updatePeriod(Voice& voice);
+    float midiNoteNumberToFreq(int midiNoteNumber, int voiceIndex);
     
     /**
      Helper method to determine if synth is being played in legato style.
      The synth is being played in legato style if, for a new noteOn event, at least one key
      must be held down for a previous note.
      */
-    bool isPlayingLegatoStyle() const;
-
+//    bool isPlayingLegatoStyle() const;
 };

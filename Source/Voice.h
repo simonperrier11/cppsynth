@@ -9,26 +9,30 @@
 */
 
 #pragma once
+
+#include <JuceHeader.h>
 #include "Constants.h"
-#include "Blit.h"
+#include "WavetableOscillator.h"
 #include "Envelope.h"
 #include "LowPassFilter.h"
 #include "HighPassFilter.h"
+#include "WavetableGenerator.h"
 
-// LRN we can use a struct instead of a class when we don't need private/protected
-//  and other inheritance shenanigans (class defaults to private, struct to public)
 /**
  Represents a voice for the synthesizer; produces the next output sample for a given note.
  The synthesizer can have multiple voices in polyphony.
  */
-struct Voice
+class Voice
 {
-    int note;
-    int velocity;
-    float saw;
-    float period; // period = 1 / freq (see Blit.h for why period is used)
+public:
+    int note; // the MIDI note number for the current voice
+    float frequency; // the base frequency of the note played on OSC1 for this voice
+    float velocityAmp;
+    float osc1Level;
+    float osc2Level;
     float target; // target for glide
     float glideRate; // copy of synth's glide rate
+    bool ringMod;
     
     // Filters
     LowPassFilter lpf;
@@ -42,10 +46,21 @@ struct Voice
     float lpfEnvDepth;
     float hpfEnvDepth;
     
-    // Oscillators
-    Blit osc1;
-    Blit osc2;
-
+    // OSC wavetables
+    std::vector<WavetableOscillator> sineTableOsc1;
+    std::vector<WavetableOscillator> triTableOsc1;
+    std::vector<WavetableOscillator> squareTableOsc1;
+    std::vector<WavetableOscillator> sawTableOsc1;
+    
+    std::vector<WavetableOscillator> sineTableOsc2;
+    std::vector<WavetableOscillator> triTableOsc2;
+    std::vector<WavetableOscillator> squareTableOsc2;
+    std::vector<WavetableOscillator> sawTableOsc2;
+    
+    // Wavetables morph factor
+    float osc1Morph;
+    float osc2Morph;
+    
     // Envelopes
     Envelope env;
     Envelope lpfEnv;
@@ -54,79 +69,45 @@ struct Voice
     /**
      Resets the state of the voice instance and its components.
      */
-    void reset()
-    {
-        note = constants::NO_NOTE_VALUE;
-        //velocity = 0;
-        saw = 0.0f;
-        osc1.reset();
-        osc2.reset();
-        env.reset();
-        lpf.reset();
-        lpfEnv.reset();
-        
-        hpf.reset();
-        hpfEnv.reset();
-    }
+    void reset();
     
     /**
      Triggers the release phase of the envelope.
      */
-    void release()
-    {
-        env.release();
-        lpfEnv.release();
-        
-        hpfEnv.release();
-    }
+    void release();
     
     /**
-      Renders the next value of the oscillator. This function also takes noise as input.
+      The core function of this class. Renders the next values of the oscillators. Also takes noise as input.
      */
-    float render(float input)
-    {
-        // Get next samples for both BLIT oscillators
-        float sample1 = osc1.nextSample();
-        float sample2 = osc2.nextSample();
-        
-        // Substract osc2 from osc1, and multiply by saw with attenuation
-        //  to create shape
-        saw = saw * 0.997f + (sample1 - sample2);
-        
-        // Mix with input (noise)
-        float output = saw + input;
-        
-        // Apply filter in series; first LPF, then HPF
-        output = lpf.render(output);
-        output = hpf.render(output);
-        
-        // Apply enveloppe
-        float envelope = env.nextValue();
-        return output * envelope;
-    }
+    float render(float noise);
     
     /**
-     Update various modulations on the voice
+     Update various modulations on the voice according to modulation values from Synth.
      */
-    void updateLFO()
-    {
-        // Update period with glide rate
-        period += glideRate * (target - period);
-        
-        // LPF
-        float lpfEnvMod = lpfEnv.nextValue() * lpfEnvDepth;
+    void updateLFO();
 
-        // Update coefficiants of filter with modulation, if any
-        float modulatedCutoff = lpfCutoff * std::exp(lpfMod + lpfEnvMod); // TODO: envmod outside of exp
-        modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f); // clamp to prevent crazy values
-        lpf.updateCoefficiants(modulatedCutoff, lpfQ);
-        
-        // HPF 
-        float hpfEnvMod = hpfEnv.nextValue() * hpfEnvDepth;
-        
-        float modulatedHpfCutoff = hpfCutoff * std::exp(hpfMod + hpfEnvMod);
-        modulatedHpfCutoff = std::clamp(modulatedHpfCutoff, 30.0f, 20000.0f);
-        hpf.updateCoefficiants(modulatedHpfCutoff, hpfQ);
-    }
+    /**
+     Returns the interpolated sample across the four wave shapes.
+     Depending on factor value, interpolate between s1 and s2, s2 and s3 or s3 and s4.
+     */
+    float interpolatedSample(float factor, float s1, float s2, float s3, float s4);
+
+    /**
+     Initializes the wavetable oscillators to be used by this voice.
+     This should only be called whenever the sample rate is set, or when it changes.
+     */
+    void initializeOscillators(float sampleRate);
+    
+    /**
+     Sets the frequency for the wavetables at MIDI note index in each wavetable vectors.
+     This is called on new notes.
+     */
+    void setFrequencyAtNote(int note, float freq);
+    
+    /**
+     Modifies the frequency for the wavetables at MIDI note index in each wavetable vectors.
+     This is done at each render of the synth's voice to catch any changes.
+     */
+    void modFrequencyAtNote(int note, float pitchBend, float vibratoMod, float osc2Detune);
 };
 

@@ -45,4 +45,13 @@ namespace constants
     // Lower rate; used for LFO among other things
     // Will be multiplied by the inverse of the sample rate
     inline constexpr int LOWER_UPDATE_RATE_MAX_VALUE { 32 };
+
+    // Max oscillators count is number of MIDI notes available
+    inline constexpr int WAVETABLE_OSCILLATORS_COUNT { 128 };
+
+    // Wavetable sample size
+    inline constexpr int WAVETABLE_LENGTH { 2048 };
+
+    // Samples to add to envelop attack/release to prevent pop
+    inline constexpr int POP_PREVENT_SAMPLES { 2500 };
 }

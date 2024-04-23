@@ -22,16 +22,19 @@ void Synth::allocateResources(double sampleRate_, int /*samplesPerBlock*/) {
     // LRN static_cast has more compile-time checks than regular cast, and is safer
     sampleRate = static_cast<float>(sampleRate_);
     
-    // Give sampleRate to voices filters to calculate coefficiants
+    // Pass sample rate to various components of voices
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
+        // Give sampleRate to voices filters to calculate coefficiants
         voices[v].lpf.sampleRate = sampleRate;
         voices[v].hpf.sampleRate = sampleRate;
+        
+        // Initialize wavetables with sample rate
+        voices[v].initializeOscillators(sampleRate);
     }
 }
 
 void Synth::deallocateResources()
 {
-    // TODO
 }
 
 void Synth::reset()
@@ -53,8 +56,14 @@ void Synth::reset()
     lfoStep = 0;
     modWheel = 0;
     lastNote = 0;
+    lastVelocity = 0;
     lpfZip = 0;
     hpfZip = 0;
+    
+    emptyHeldNotes();
+    
+    ringMod = false;
+    ignoreVelocity = false;
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -66,12 +75,19 @@ void Synth::render(float** outputBuffers, int sampleCount)
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         Voice& voice = voices[v];
         
+        // Update voice ring mod
+        voice.ringMod = ringMod;
+        
+        // Update OSC settings
+        voice.osc1Morph = osc1Morph;
+        voice.osc2Morph = osc2Morph;
+        voice.osc1Level = osc1Level;
+        voice.osc2Level = osc2Level;
+        
         if (voice.env.isActive()) {
-            // TODO: general tune and finetune, OSC and noise levels here
-
-            // Glide might affect current period value
-            updatePeriod(voice);
-            voice.glideRate = glideRate;
+            // Update modulation on frequency
+            updateFreq(voice);
+//            voice.glideRate = glideRate;
             
             // Filter values
             voice.lpfCutoff = lpfCutoff;
@@ -86,6 +102,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         
     // For all the samples we need to render (sampleCount)...
     for (int sample = 0; sample < sampleCount; ++sample) {
+        // Update LFO first
         updateLFO();
         
         // Get next noise value
@@ -123,7 +140,6 @@ void Synth::render(float** outputBuffers, int sampleCount)
 
         // Write value in left and right buffers
         if (outputBufferRight != nullptr) {
-            // TODO: implement stereophony
             outputBufferLeft[sample] = outputLeft;
             outputBufferRight[sample] = outputRight;
         }
@@ -144,7 +160,6 @@ void Synth::render(float** outputBuffers, int sampleCount)
         }
     }
 
-    // TODO: remove when done with dev, but add back when developing features
     // Protect buffers from loudness
     loudnessProtectBuffer(outputBufferLeft, sampleCount);
     loudnessProtectBuffer(outputBufferRight, sampleCount);
@@ -156,7 +171,7 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
     // channel (last 4 bits). We simply need to do a binary AND with 11110000
     // and 00001111 to get both parts respectively
     uint8_t command = data0 & 0xF0;
-    uint8_t channel = data0 & 0x0F;
+    // uint8_t channel = data0 & 0x0F;
     
     // Force set values to 0-127 range by doing binary AND, just in case
     uint8_t note = data1 & 0x7F;
@@ -185,58 +200,55 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
         }
         case 0xE0: {
             // Range of pitch bend is 2 semitones up and down
-            // TODO: not sure about this, see for change (189)
-            pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192));
+            pitchBend = std::exp(0.000014102f * float(data1 + 128 * data2 - 8192));
             break;
         }
     }
 }
 
-void Synth::startVoice(int voiceIndex, int note, int velocity) {
-    float period = calcPeriod(voiceIndex, note);
-
+void Synth::startVoice(int voiceIndex, int note, int velocity)
+{
     Voice& voice = voices[voiceIndex];
-    voice.target = period;
+
+    // Get frequency for note from MIDI number
+    const auto freq = midiNoteNumberToFreq(note, voiceIndex);
     
-    // Calculate note distance for glide
-    int noteDistance = 0;
-    if (lastNote > 0) {
-        // Glide mode "always" or "while playing legato"
-        if ((glideMode == 2) || ((glideMode == 1) && isPlayingLegatoStyle())) {
-            noteDistance = note - lastNote;
-        }
-    }
+    voice.setFrequencyAtNote(note, freq);
+
+//    voice.target = freq;
     
-    /*
-     Set voice.period to the period to glide from; this is necessary because in polyphony mode,
-     the voice may not have the period of the most recent note that was played, if that note was
-     handled by another voice.
-     Note : 2^N/12 == 1.059463094359^N, where N is in semitones
-     .*/
-    voice.period = period * std::pow(1.059463094359f, float(noteDistance) - glideBend);
+//    // Calculate note distance for glide
+//    int noteDistance = 0;
+//    if (lastNote > 0) {
+//        // Glide mode "always" or "while playing legato"
+//        if ((glideMode == 2) || ((glideMode == 1) && isPlayingLegatoStyle())) {
+//            noteDistance = note - lastNote;
+//        }
+//    }
     
-    // Limit period to small value
-    if (voice.period < 6.0f) { voice.period = 6.0f; }
+//    /*
+//     Set voice.period to the period to glide from; this is necessary because in polyphony mode,
+//     the voice may not have the period of the most recent note that was played, if that note was
+//     handled by another voice.
+//     Note : 2^N/12 == 1.059463094359^N, where N is in semitones
+//     .*/
+//    // TODO: Change for wavetable
+//    voice.frequency = freq * std::pow(1.059463094359f, float(noteDistance) - glideBend);
+        
+//    lastNote = note;
+
+    lastVelocity = velocity;
     
-    lastNote = note;
     voice.note = note;
-    
-    // Reset oscillators when starting voice
-    if (oscReset) {
-        voice.osc1.reset();
-        voice.osc2.reset();
-    }
     
     // Apply curve to velocity
     // Custom curve with dynamic range -23dB - 0.72dB
     float velocityCurve = 0.004f * float((velocity + 64) * (velocity + 64)) - 8.0f;
-    voice.osc1.amplitude = velocityCurve * volumeTrim;
-    voice.osc2.amplitude = voice.osc1.amplitude;
-    
-    // Apply levels
-    // TODO: apply change when moving slider
-    voice.osc1.amplitude = voice.osc1.amplitude * osc1Level;
-    voice.osc2.amplitude = voice.osc2.amplitude * osc2Level;
+    voice.velocityAmp = velocityCurve * volumeTrim;
+        
+    // OSC levels
+    voice.osc1Level = osc1Level;
+    voice.osc2Level = osc2Level;
 
     // LRN & to dereference voice.env to access it just by env variable
     // Envelope settings + trigger envelope
@@ -269,19 +281,6 @@ void Synth::startVoice(int voiceIndex, int note, int velocity) {
     hpfEnv.attack();
 }
 
-void Synth::restartVoiceLegato(int note, int velocity) {
-    float period = calcPeriod(0, note);
-    
-    Voice& voice = voices[0];
-    voice.target = period;
-    
-    // Directly set period to voice if glide is off
-    if (glideMode == 0) { voice.period = period; }
-    
-    voice.env.level += constants::SILENCE_TRESHOLD + constants::SILENCE_TRESHOLD;
-    voice.note = note;
-}
-
 void Synth::noteOn(int note, int velocity)
 {
     // Disables velocity of note (force to 80)
@@ -292,12 +291,10 @@ void Synth::noteOn(int note, int velocity)
     int v = 0; // Voice index
     
     if (polyMode == 0) { // Mono
-        if (voices[0].note > 0) { // Legato
-            restartVoiceLegato(note, velocity);
-            return;
-        }
+        heldNotesMono.push(note);
     }
     else { // Poly
+        emptyHeldNotes(); // clear mono held notes to prevent issues
         v = findFreeVoice();
     }
     
@@ -306,31 +303,29 @@ void Synth::noteOn(int note, int velocity)
 
 void Synth::noteOff(int note)
 {
-    // TODO: if noteOff velocity is to be implemented, use here
+    if (note != constants::SUSTAINED_NOTE_VALUE) {
+        if (polyMode == 0) {
+            if (!heldNotesMono.empty()) {
+                heldNotesMono.pop(); // Remove released note from held notes
+            }
+            
+            // Play previously held note if any (last note priority)
+            if (!heldNotesMono.empty() && voices[0].note == note) {
+                startVoice(0, heldNotesMono.top(), lastVelocity);
+            }
+        }
+        else {
+            emptyHeldNotes(); // clear mono held notes to prevent issues
+        }
+    }
+    
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         if (voices[v].note == note) {
-            if (sustainPressed) {
-                voices[v].note = constants::SUSTAINED_NOTE_VALUE;
-            }
-            else {
+            if (!sustainPressed) {
                 voices[v].release();
-                voices[v].note = constants::NO_NOTE_VALUE;
             }
         }
     }
-}
-
-float Synth::calcPeriod(int voiceIndex, int note) const
-{
-    // Add small analog drift to frequency
-    float freq = 440.0f * std::exp2((float(note - 69 + (constants::ANALOG_DRIFT * float(voiceIndex))) + tune) / 12.0f);
-    float period = sampleRate / freq;
-    
-    // Ensure that the period or detuned pitch of OSC2 is at least 6 samples long,
-    // else we double it. This is because the BLIT based oscillator may not work
-    // too well if the perdio is too small
-    while (period < 6.0f || (period * osc2detune) < 6.0f) { period += period; }
-    return period;
 }
 
 int Synth::findFreeVoice() const
@@ -363,8 +358,9 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
             
             // Sustain pedal is lifted
             if (!sustainPressed) {
-                // Call noteOff on all previously sustained notes
-                noteOff(constants::SUSTAINED_NOTE_VALUE);
+                // TODO: all currently held notes should not be released...
+                for (int v = 0; v < constants::MAX_VOICES; ++v) { voices[v].release(); }
+                emptyHeldNotes();
             }
             break;
         }
@@ -396,7 +392,7 @@ void Synth::updateLFO()
         const float sine = std::sin(lfo);
         
         // Create and apply vibrato modulation to voices
-        float vibratoMod = 1.0f + sine * (modWheel + vibrato);
+        vibratoMod = 1.0f + sine * (modWheel + vibrato);
         
         // LFO depth for filter cutoff
         float lpfMod = lpfLFODepth * sine;
@@ -410,29 +406,38 @@ void Synth::updateLFO()
             Voice& voice = voices[v];
             
             if (voice.env.isActive()) {
-                voice.osc1.modulation = vibratoMod;
-                voice.osc2.modulation = vibratoMod;
                 voice.lpfMod = lpfZip;
                 voice.hpfMod = hpfZip;
                 voice.updateLFO();
-                updatePeriod(voice);
+                updateFreq(voice);
             }
         }
     }
 }
 
-void Synth::updatePeriod(Voice &voice)
+void Synth::updateFreq(Voice &voice)
 {
-    // TODO: master tune
-    voice.osc1.period = voice.period * pitchBend;
-    voice.osc2.period = voice.osc1.period * osc2detune;
+    voice.modFrequencyAtNote(voice.note, pitchBend, vibratoMod, osc2detune);
 }
 
-bool Synth::isPlayingLegatoStyle() const
+float Synth::midiNoteNumberToFreq(int midiNoteNumber, int voiceIndex)
 {
-    int held = 0;
-    for (int i = 0; i < constants::MAX_VOICES; ++i) {
-        if (voices[i].note > 0) { held += 1; }
+    // Also apply general synth tuning
+    return 440.0f * std::exp2((float(midiNoteNumber - 69 + (constants::ANALOG_DRIFT * float(voiceIndex))) + tune) / 12.0f);
+}
+
+//bool Synth::isPlayingLegatoStyle() const
+//{
+//    int held = 0;
+//    for (int i = 0; i < constants::MAX_VOICES; ++i) {
+//        if (voices[i].note > 0) { held += 1; }
+//    }
+//    return held > 0;
+//}
+
+void Synth::emptyHeldNotes()
+{
+    if (!heldNotesMono.empty()) {
+        while (!heldNotesMono.empty()) { heldNotesMono.pop(); }
     }
-    return held > 0;
 }
