@@ -291,7 +291,7 @@ void Synth::noteOn(int note, int velocity)
     int v = 0; // Voice index
     
     if (polyMode == 0) { // Mono
-        heldNotesMono.push(note);
+        addHeldNote(note);
     }
     else { // Poly
         emptyHeldNotes(); // clear mono held notes to prevent issues
@@ -304,14 +304,13 @@ void Synth::noteOn(int note, int velocity)
 void Synth::noteOff(int note)
 {
     if (polyMode == 0) {
-        if (!heldNotesMono.empty()) {
-            heldNotesMono.pop();
-            DBG(notePopped); // Remove released note from held notes
+        if (!heldNotesEmpty()) {
+            removeHeldNote(note); // Remove released note from held notes
         }
         
         // Play previously held note if any (last note priority)
-        if (!heldNotesMono.empty() && voices[0].note == note) {
-            startVoice(0, heldNotesMono.top(), lastVelocity);
+        if (!heldNotesEmpty() && voices[0].note == note) {
+            startVoice(0, lastHeldNote(), lastVelocity);
         }
     }
     else {
@@ -432,6 +431,54 @@ float Synth::midiNoteNumberToFreq(int midiNoteNumber, int voiceIndex)
     return 440.0f * std::exp2((float(midiNoteNumber - 69 + (constants::ANALOG_DRIFT * float(voiceIndex))) + tune) / 12.0f);
 }
 
+void Synth::emptyHeldNotes()
+{
+    for (int i = 0; i < 10; ++i) {
+        heldNotesMono[i] = 0;
+    }
+}
+
+void Synth::addHeldNote(int note)
+{
+    for (int i = 0; i < 10; ++i) {
+        if (heldNotesMono[i] == 0) {
+            heldNotesMono[i] = note;
+            break;
+        }
+    }
+}
+
+void Synth::removeHeldNote(int note)
+{
+    for (int i = 0; i < 10; ++i) {
+        if (heldNotesMono[i] == note) {
+            heldNotesMono[i] = 0;
+            break;
+        }
+    }
+}
+
+int Synth::lastHeldNote()
+{
+    int last = 0;
+    
+    for (int i = 0; i < 10; ++i) {
+        if (heldNotesMono[i] != 0) {
+            last = heldNotesMono[i];
+        }
+    }
+
+    return last;
+}
+
+bool Synth::heldNotesEmpty() {
+    for (int i = 0; i < 10; ++i) {
+        if (heldNotesMono[i] != 0) { return false; }
+    }
+
+    return true;
+}
+
 //bool Synth::isPlayingLegatoStyle() const
 //{
 //    int held = 0;
@@ -440,10 +487,3 @@ float Synth::midiNoteNumberToFreq(int midiNoteNumber, int voiceIndex)
 //    }
 //    return held > 0;
 //}
-
-void Synth::emptyHeldNotes()
-{
-    if (!heldNotesMono.empty()) {
-        while (!heldNotesMono.empty()) { heldNotesMono.pop(); }
-    }
-}

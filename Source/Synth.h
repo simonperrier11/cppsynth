@@ -36,8 +36,8 @@ public:
     float vibrato; // pitch LFO depth
     float modWheel;
     float vibratoMod;
-    float glideRate; // speed of glide
-    float glideBend; // adds a glide up or down before new notes
+//    float glideRate; // speed of glide
+//    float glideBend; // adds a glide up or down before new notes
     float lpfCutoff, lpfQ;
     float lpfLFODepth;
     float lpfAttack, lpfDecay, lpfSustain, lpfRelease;
@@ -48,11 +48,10 @@ public:
     float hpfEnvDepth;
     int numVoices;
     int polyMode; // 0: Mono; 1: Poly;
-    int glideMode;
+//    int glideMode;
     int noiseType; // 0: White; 1: Pink
     bool ignoreVelocity;
     bool ringMod;
-    // TODO: apply smoothing technique to some other params as well (osc mix, etc.)
     juce::LinearSmoothedValue<float> outputLevelSmoother;
     
     Synth();
@@ -88,19 +87,44 @@ public:
     void controlChange(uint8_t data1, uint8_t data2);
     
     /**
-     Empties the held note stack. Useful when resetting synth or changing mono/poly modes.
+     Empties the held note list. Called when resetting synth or changing mono/poly modes.
      */
     void emptyHeldNotes();
+    
+    /**
+     Adds a held note to the held note list.
+     */
+    void addHeldNote(int note);
+    
+    /**
+     Removes a note from the held note list.
+     */
+    void removeHeldNote(int note);
+    
+    /**
+     Returns the last held note.
+     */
+    int lastHeldNote();
+    
+    /**
+     Checks if the held notes list is empty.
+     */
+    bool heldNotesEmpty();
 
 private:
     int lfoStep; // counter from LFO max value to 0
-    int lastNote; // keep track of last note for glide
-    int lastVelocity;
-    std::stack<int> heldNotesMono;
+//    int lastNote; // keep track of last note for glide
+    int lastVelocity; // kepp track of the velocity of the last held note
+    /*
+     The list of held notes in mono modeis represented as a list of 10 integers
+     0 means no note, and any other number means the note is held
+     The last held note is the last number in the list that != 0
+     */
+    int heldNotesMono[10];
     float sampleRate;
     float pitchBend;
     float lfo; // current phase of LFO sine wave
-    // will hold the smoothed versions of filters Mod value (to remove zipper noise)
+        // Zips will hold the smoothed versions of filters Mod value (to remove zipper noise)
     float lpfZip;
     float hpfZip;
     bool sustainPressed;
