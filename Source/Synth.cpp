@@ -232,7 +232,6 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
 //     handled by another voice.
 //     Note : 2^N/12 == 1.059463094359^N, where N is in semitones
 //     .*/
-//    // TODO: Change for wavetable
 //    voice.frequency = freq * std::pow(1.059463094359f, float(noteDistance) - glideBend);
         
 //    lastNote = note;
@@ -450,17 +449,26 @@ void Synth::addHeldNote(int note)
 
 void Synth::removeHeldNote(int note)
 {
-    for (int i = 0; i < constants::MAX_VOICES; ++i) {
+    int i;
+    for (i = 0; i < constants::MAX_VOICES; ++i) {
         if (heldNotesMono[i] == note) {
             heldNotesMono[i] = constants::NO_NOTE_VALUE;
             break;
+        }
+    }
+    
+    // Shift remaining held notes down 1 position
+    for (i = i + 1; i < constants::MAX_VOICES; ++i) {
+        heldNotesMono[i - 1] = heldNotesMono[i];
+        if (i == constants::MAX_VOICES - 1) {
+            heldNotesMono[i] = 0;
         }
     }
 }
 
 int Synth::lastHeldNote()
 {
-    int last = 0;
+    int last = constants::NO_NOTE_VALUE;
     
     for (int i = 0; i < constants::MAX_VOICES; ++i) {
         if (heldNotesMono[i] != constants::NO_NOTE_VALUE) {

@@ -22,6 +22,7 @@ void Voice::reset()
     osc2Morph = 0.f;
     ringMod = false;
     sustained = false;
+    sustained = false;
 }
     
 void Voice::release()
@@ -95,8 +96,8 @@ float Voice::render(float noise)
 
 void Voice::updateLFO()
 {
-    // Update frequency with glide rate
-    frequency += glideRate * (target - frequency);
+//    // Update frequency with glide rate
+//    frequency += glideRate * (target - frequency);
     
     // LPF
     float lpfEnvMod = lpfEnv.nextValue() * lpfEnvDepth;

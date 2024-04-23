@@ -30,8 +30,8 @@ public:
     float velocityAmp;
     float osc1Level;
     float osc2Level;
-    float target; // target for glide
-    float glideRate; // copy of synth's glide rate
+//    float target; // target for glide
+//    float glideRate; // copy of synth's glide rate
     bool ringMod;
     bool sustained;
     
