@@ -55,7 +55,7 @@ void Synth::reset()
     lfo = 0.0f;
     lfoStep = 0;
     modWheel = 0;
-    lastNote = 0;
+//    lastNote = 0;
     lastVelocity = 0;
     lpfZip = 0;
     hpfZip = 0;
@@ -433,15 +433,15 @@ float Synth::midiNoteNumberToFreq(int midiNoteNumber, int voiceIndex)
 
 void Synth::emptyHeldNotes()
 {
-    for (int i = 0; i < 10; ++i) {
-        heldNotesMono[i] = 0;
+    for (int i = 0; i < constants::MAX_VOICES; ++i) {
+        heldNotesMono[i] = constants::NO_NOTE_VALUE;
     }
 }
 
 void Synth::addHeldNote(int note)
 {
-    for (int i = 0; i < 10; ++i) {
-        if (heldNotesMono[i] == 0) {
+    for (int i = 0; i < constants::MAX_VOICES; ++i) {
+        if (heldNotesMono[i] == constants::NO_NOTE_VALUE) {
             heldNotesMono[i] = note;
             break;
         }
@@ -450,9 +450,9 @@ void Synth::addHeldNote(int note)
 
 void Synth::removeHeldNote(int note)
 {
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < constants::MAX_VOICES; ++i) {
         if (heldNotesMono[i] == note) {
-            heldNotesMono[i] = 0;
+            heldNotesMono[i] = constants::NO_NOTE_VALUE;
             break;
         }
     }
@@ -462,8 +462,8 @@ int Synth::lastHeldNote()
 {
     int last = 0;
     
-    for (int i = 0; i < 10; ++i) {
-        if (heldNotesMono[i] != 0) {
+    for (int i = 0; i < constants::MAX_VOICES; ++i) {
+        if (heldNotesMono[i] != constants::NO_NOTE_VALUE) {
             last = heldNotesMono[i];
         }
     }
@@ -472,8 +472,8 @@ int Synth::lastHeldNote()
 }
 
 bool Synth::heldNotesEmpty() {
-    for (int i = 0; i < 10; ++i) {
-        if (heldNotesMono[i] != 0) { return false; }
+    for (int i = 0; i < constants::MAX_VOICES; ++i) {
+        if (heldNotesMono[i] != constants::NO_NOTE_VALUE) { return false; }
     }
 
     return true;

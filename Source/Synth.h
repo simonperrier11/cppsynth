@@ -114,18 +114,19 @@ public:
 private:
     int lfoStep; // counter from LFO max value to 0
 //    int lastNote; // keep track of last note for glide
-    int lastVelocity; // kepp track of the velocity of the last held note
-    /*
-     The list of held notes in mono modeis represented as a list of 10 integers
-     0 means no note, and any other number means the note is held
-     The last held note is the last number in the list that != 0
+    int lastVelocity; // keep track of the velocity of the last held note
+    /**
+     The list of held notes in mono mode is represented as a list of 10 integers.
+     The constant for no notes means no note is held, and any other number means the note is held.
+     The last held note is the last number in the list that != the no note value constant
+     Even though last note priority is a mono mode feature and only one voice is used,
+     we still use the max voices constant, since 10 held notes is enough.
      */
-    int heldNotesMono[10];
+    int heldNotesMono[constants::MAX_VOICES];
     float sampleRate;
     float pitchBend;
     float lfo; // current phase of LFO sine wave
-        // Zips will hold the smoothed versions of filters Mod value (to remove zipper noise)
-    float lpfZip;
+    float lpfZip; // holds the smoothed version of LPF mod value (to remove zipper noise)
     float hpfZip;
     bool sustainPressed;
     // LRN allocate arr size directly in std::array<Type, Size> arr;
