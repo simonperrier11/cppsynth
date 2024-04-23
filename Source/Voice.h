@@ -33,6 +33,7 @@ public:
     float target; // target for glide
     float glideRate; // copy of synth's glide rate
     bool ringMod;
+    bool sustained;
     
     // Filters
     LowPassFilter lpf;

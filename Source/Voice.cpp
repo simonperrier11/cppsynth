@@ -21,6 +21,7 @@ void Voice::reset()
     osc1Morph = 0.f;
     osc2Morph = 0.f;
     ringMod = false;
+    sustained = false;
 }
     
 void Voice::release()

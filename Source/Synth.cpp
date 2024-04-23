@@ -303,26 +303,28 @@ void Synth::noteOn(int note, int velocity)
 
 void Synth::noteOff(int note)
 {
-    if (note != constants::SUSTAINED_NOTE_VALUE) {
-        if (polyMode == 0) {
-            if (!heldNotesMono.empty()) {
-                heldNotesMono.pop(); // Remove released note from held notes
-            }
-            
-            // Play previously held note if any (last note priority)
-            if (!heldNotesMono.empty() && voices[0].note == note) {
-                startVoice(0, heldNotesMono.top(), lastVelocity);
-            }
+    if (polyMode == 0) {
+        if (!heldNotesMono.empty()) {
+            heldNotesMono.pop();
+            DBG(notePopped); // Remove released note from held notes
         }
-        else {
-            emptyHeldNotes(); // clear mono held notes to prevent issues
+        
+        // Play previously held note if any (last note priority)
+        if (!heldNotesMono.empty() && voices[0].note == note) {
+            startVoice(0, heldNotesMono.top(), lastVelocity);
         }
+    }
+    else {
+        emptyHeldNotes(); // clear mono held notes to prevent issues
     }
     
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         if (voices[v].note == note) {
             if (!sustainPressed) {
                 voices[v].release();
+            }
+            else {
+                voices[v].sustained = true;
             }
         }
     }
@@ -358,8 +360,12 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
             
             // Sustain pedal is lifted
             if (!sustainPressed) {
-                // TODO: all currently held notes should not be released...
-                for (int v = 0; v < constants::MAX_VOICES; ++v) { voices[v].release(); }
+                for (int v = 0; v < constants::MAX_VOICES; ++v) {
+                    if (voices[v].sustained) {
+                        voices[v].release();
+                        voices[v].sustained = false;
+                    }
+                }
                 emptyHeldNotes();
             }
             break;
