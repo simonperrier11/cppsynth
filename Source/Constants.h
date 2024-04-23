@@ -18,7 +18,6 @@ namespace constants
 {
     // Some special values used for notes
     inline constexpr int NO_NOTE_VALUE { 0 };
-    inline constexpr int SUSTAINED_NOTE_VALUE { -1 };
 
     // Define our pi based values in float instead of doubles like in std lib
     // Approximation of 2 * pi
