@@ -11,6 +11,10 @@
         <FILE id="eZoJv7" name="JetBrainsMono-Regular.ttf" compile="0" resource="1"
               file="Fonts/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-Regular.ttf"/>
       </GROUP>
+      <FILE id="d0N9b4" name="WavetableGenerator.cpp" compile="1" resource="0"
+            file="Source/WavetableGenerator.cpp"/>
+      <FILE id="Wr4k4L" name="WavetableGenerator.h" compile="0" resource="0"
+            file="Source/WavetableGenerator.h"/>
       <FILE id="Q4BO7r" name="WavetableOscillator.cpp" compile="1" resource="0"
             file="Source/WavetableOscillator.cpp"/>
       <FILE id="kWVYlG" name="WavetableOscillator.h" compile="0" resource="0"
@@ -31,6 +35,7 @@
       <FILE id="I6Yynu" name="NoiseGenerator.h" compile="0" resource="0"
             file="Source/NoiseGenerator.h"/>
       <FILE id="e6gMkH" name="Constants.h" compile="0" resource="0" file="Source/Constants.h"/>
+      <FILE id="OxdErV" name="Voice.cpp" compile="1" resource="0" file="Source/Voice.cpp"/>
       <FILE id="Cp3weF" name="Voice.h" compile="0" resource="0" file="Source/Voice.h"/>
       <FILE id="QRpocH" name="Synth.cpp" compile="1" resource="0" file="Source/Synth.cpp"/>
       <FILE id="dMre1v" name="Synth.h" compile="0" resource="0" file="Source/Synth.h"/>
