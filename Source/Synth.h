@@ -150,5 +150,5 @@ private:
      The synth is being played in legato style if, for a new noteOn event, at least one key
      must be held down for a previous note.
      */
-    bool isPlayingLegatoStyle() const;
+//    bool isPlayingLegatoStyle() const;
 };

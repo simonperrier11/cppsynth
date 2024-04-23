@@ -17,7 +17,6 @@ namespace ParameterID
 {
     #define PARAMETER_ID(str) const juce::ParameterID str(#str, 1);
 
-    // PARAMETER_ID(numVoices)
     PARAMETER_ID(osc1Level)
     PARAMETER_ID(osc2Level)
     PARAMETER_ID(noiseLevel)
@@ -25,9 +24,9 @@ namespace ParameterID
     PARAMETER_ID(oscFine)
     PARAMETER_ID(osc1Morph)
     PARAMETER_ID(osc2Morph)
-    PARAMETER_ID(glideMode)
-    PARAMETER_ID(glideRate)
-    PARAMETER_ID(glideBend)
+//    PARAMETER_ID(glideMode)
+//    PARAMETER_ID(glideRate)
+//    PARAMETER_ID(glideBend)
     PARAMETER_ID(lpfFreq)
     PARAMETER_ID(lpfReso)
     PARAMETER_ID(lpfEnv)
@@ -120,7 +119,6 @@ private:
     Synth synth;
     
     // Parameters accessible to host
-    // juce::AudioParameterInt* numVoicesParam;
     juce::AudioParameterFloat* osc1LevelParam;
     juce::AudioParameterFloat* osc2LevelParam;
     juce::AudioParameterFloat* noiseLevelParam;
@@ -128,9 +126,9 @@ private:
     juce::AudioParameterFloat* oscFineParam;
     juce::AudioParameterFloat* osc1MorphParam;
     juce::AudioParameterFloat* osc2MorphParam;
-    juce::AudioParameterChoice* glideModeParam;
-    juce::AudioParameterFloat* glideRateParam;
-    juce::AudioParameterFloat* glideBendParam;
+//    juce::AudioParameterChoice* glideModeParam;
+//    juce::AudioParameterFloat* glideRateParam;
+//    juce::AudioParameterFloat* glideBendParam;
     juce::AudioParameterFloat* lpfFreqParam;
     juce::AudioParameterFloat* lpfResoParam;
     juce::AudioParameterFloat* lpfEnvParam;

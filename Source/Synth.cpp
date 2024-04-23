@@ -87,7 +87,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         if (voice.env.isActive()) {
             // Update modulation on frequency
             updateFreq(voice);
-            voice.glideRate = glideRate;
+//            voice.glideRate = glideRate;
             
             // Filter values
             voice.lpfCutoff = lpfCutoff;
@@ -160,7 +160,6 @@ void Synth::render(float** outputBuffers, int sampleCount)
         }
     }
 
-    // TODO: remove when done with dev, but add back when developing features
     // Protect buffers from loudness
     loudnessProtectBuffer(outputBufferLeft, sampleCount);
     loudnessProtectBuffer(outputBufferRight, sampleCount);
@@ -216,27 +215,28 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     
     voice.setFrequencyAtNote(note, freq);
 
-    voice.target = freq;
+//    voice.target = freq;
     
-    // Calculate note distance for glide
-    int noteDistance = 0;
-    if (lastNote > 0) {
-        // Glide mode "always" or "while playing legato"
-        if ((glideMode == 2) || ((glideMode == 1) && isPlayingLegatoStyle())) {
-            noteDistance = note - lastNote;
-        }
-    }
+//    // Calculate note distance for glide
+//    int noteDistance = 0;
+//    if (lastNote > 0) {
+//        // Glide mode "always" or "while playing legato"
+//        if ((glideMode == 2) || ((glideMode == 1) && isPlayingLegatoStyle())) {
+//            noteDistance = note - lastNote;
+//        }
+//    }
     
-    /*
-     Set voice.period to the period to glide from; this is necessary because in polyphony mode,
-     the voice may not have the period of the most recent note that was played, if that note was
-     handled by another voice.
-     Note : 2^N/12 == 1.059463094359^N, where N is in semitones
-     .*/
-    // TODO: Change for wavetable
-    voice.frequency = freq * std::pow(1.059463094359f, float(noteDistance) - glideBend);
+//    /*
+//     Set voice.period to the period to glide from; this is necessary because in polyphony mode,
+//     the voice may not have the period of the most recent note that was played, if that note was
+//     handled by another voice.
+//     Note : 2^N/12 == 1.059463094359^N, where N is in semitones
+//     .*/
+//    // TODO: Change for wavetable
+//    voice.frequency = freq * std::pow(1.059463094359f, float(noteDistance) - glideBend);
         
-    lastNote = note;
+//    lastNote = note;
+
     lastVelocity = velocity;
     
     voice.note = note;
@@ -318,7 +318,7 @@ void Synth::noteOff(int note)
             emptyHeldNotes(); // clear mono held notes to prevent issues
         }
     }
-
+    
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         if (voices[v].note == note) {
             if (!sustainPressed) {
@@ -358,7 +358,9 @@ void Synth::controlChange(uint8_t data1, uint8_t data2)
             
             // Sustain pedal is lifted
             if (!sustainPressed) {
+                // TODO: all currently held notes should not be released...
                 for (int v = 0; v < constants::MAX_VOICES; ++v) { voices[v].release(); }
+                emptyHeldNotes();
             }
             break;
         }
@@ -424,14 +426,14 @@ float Synth::midiNoteNumberToFreq(int midiNoteNumber, int voiceIndex)
     return 440.0f * std::exp2((float(midiNoteNumber - 69 + (constants::ANALOG_DRIFT * float(voiceIndex))) + tune) / 12.0f);
 }
 
-bool Synth::isPlayingLegatoStyle() const
-{
-    int held = 0;
-    for (int i = 0; i < constants::MAX_VOICES; ++i) {
-        if (voices[i].note > 0) { held += 1; }
-    }
-    return held > 0;
-}
+//bool Synth::isPlayingLegatoStyle() const
+//{
+//    int held = 0;
+//    for (int i = 0; i < constants::MAX_VOICES; ++i) {
+//        if (voices[i].note > 0) { held += 1; }
+//    }
+//    return held > 0;
+//}
 
 void Synth::emptyHeldNotes()
 {

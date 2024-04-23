@@ -26,10 +26,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
                        )
 #endif
 {
-    // TODO: maybe add listener for specific parameter changes
-
     // Assign each identified parameter in the APVTS to a variable
-    // castJuceParameter(apvts, ParameterID::numVoices, numVoicesParam);
     castJuceParameter(apvts, ParameterID::osc1Level, osc1LevelParam);
     castJuceParameter(apvts, ParameterID::osc2Level, osc2LevelParam);
     castJuceParameter(apvts, ParameterID::noiseLevel, noiseLevelParam);
@@ -37,9 +34,9 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::oscFine, oscFineParam);
     castJuceParameter(apvts, ParameterID::osc1Morph, osc1MorphParam);
     castJuceParameter(apvts, ParameterID::osc2Morph, osc2MorphParam);
-    castJuceParameter(apvts, ParameterID::glideMode, glideModeParam);
-    castJuceParameter(apvts, ParameterID::glideRate, glideRateParam);
-    castJuceParameter(apvts, ParameterID::glideBend, glideBendParam);
+//    castJuceParameter(apvts, ParameterID::glideMode, glideModeParam);
+//    castJuceParameter(apvts, ParameterID::glideRate, glideRateParam);
+//    castJuceParameter(apvts, ParameterID::glideBend, glideBendParam);
     castJuceParameter(apvts, ParameterID::lpfFreq, lpfFreqParam);
     castJuceParameter(apvts, ParameterID::lpfReso, lpfResoParam);
     castJuceParameter(apvts, ParameterID::lpfEnv, lpfEnvParam);
@@ -385,12 +382,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                             juce::StringArray { "Off", "On" },
                                                             0));
     
-    // TODO: dynamically change number of voices
-    // layout.add(std::make_unique<juce::AudioParameterInt>(ParameterID::numVoices, "Voices Count", 1, 10, 10));
-
-    // LRN AudioParameterFloat has an ID, a label, a range, a default value, and an attribute object that
-    //  describes the label for the units
-    // LRN juce::NormalisableRange<float> maps a range from 0.0 to 1.0
     // OSC tune in semitones
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::oscTune, 
                                                            "OSC2 Semitones",
@@ -448,25 +439,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
-    // Glide Mode
-    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::glideMode, 
-                                                            "Glide Mode",
-                                                            juce::StringArray { "Off", "Legato", "Always" },
-                                                            0));
-
-    // Glide Rate
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideRate, 
-                                                           "Glide Rate",
-                                                           juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
-                                                           0.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
-
-    // Glide Bend (add additionnal glide to notes played)
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideBend, 
-                                                           "Glide Bend",
-                                                           juce::NormalisableRange<float>(-36.0f, 36.0f, 0.01f, 0.4f, true),
-                                                           0.0f,
-                                                           juce::AudioParameterFloatAttributes().withLabel("semi")));
+//    // Glide Mode
+//    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::glideMode, 
+//                                                            "Glide Mode",
+//                                                            juce::StringArray { "Off", "Legato", "Always" },
+//                                                            0));
+//
+//    // Glide Rate
+//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideRate, 
+//                                                           "Glide Rate",
+//                                                           juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
+//                                                           0.0f,
+//                                                           juce::AudioParameterFloatAttributes().withLabel("%")));
+//
+//    // Glide Bend (add additionnal glide to notes played)
+//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::glideBend, 
+//                                                           "Glide Bend",
+//                                                           juce::NormalisableRange<float>(-36.0f, 36.0f, 0.01f, 0.4f, true),
+//                                                           0.0f,
+//                                                           juce::AudioParameterFloatAttributes().withLabel("semi")));
 
 
 //    // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
@@ -667,7 +658,6 @@ void CppsynthAudioProcessor::valueTreePropertyChanged(juce::ValueTree&, const ju
 
 void CppsynthAudioProcessor::update()
 {
-    // TODO: it would be more efficient to only update params that have changed
     float sampleRate = float(getSampleRate());
     float inverseSampleRate = 1.0f / sampleRate;
     
@@ -739,12 +729,9 @@ void CppsynthAudioProcessor::update()
     synth.hpfQ = std::exp(3.0f * hpfReso);
 
     // Volume
-    // TODO: not sure about this, see for change (215 244)
-    // TODO: reso of HPF
     synth.volumeTrim = 0.0008f * (3.2f - 25.0f * synth.noiseLevel) * (1.5f - 0.5f * lpfReso);
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
     
-    // TODO: add velocity sensitivity for amplitude and filter
     // Filter velocity
 //    float lpfVelocity = lpfVelocityParam->get();
 //    if (lpfVelocity < -90.0f) {
@@ -772,19 +759,18 @@ void CppsynthAudioProcessor::update()
     float vibrato = vibratoParam->get() / 120.0f;
     synth.vibrato = vibrato;
     
-    // Glide
-    synth.glideMode = glideModeParam->getIndex();
+//    // Glide
+//    synth.glideMode = glideModeParam->getIndex();
     
-    float glideRate = glideRateParam->get();
-    if (glideRate < 2.0f) {
-        synth.glideRate = 1.0f; // No glide
-    }
-    else {
-        // TODO: change glide rate to ms instead
-        synth.glideRate = 1.0f - std::exp(-inverseUpdateRate * std::exp(6.0f - 0.07f * glideRate));
-    }
-    
-    synth.glideBend = glideBendParam->get();
+//    float glideRate = glideRateParam->get();
+//    if (glideRate < 2.0f) {
+//        synth.glideRate = 1.0f; // No glide
+//    }
+//    else {
+//        synth.glideRate = 1.0f - std::exp(-inverseUpdateRate * std::exp(6.0f - 0.07f * glideRate));
+//    }
+//    
+//    synth.glideBend = glideBendParam->get();
     
     // Filter LFO depth
     float lpfLFO = lpfLFOParam->get() / 100.0f;
