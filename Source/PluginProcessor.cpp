@@ -41,7 +41,6 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::lpfReso, lpfResoParam);
     castJuceParameter(apvts, ParameterID::lpfEnv, lpfEnvParam);
     castJuceParameter(apvts, ParameterID::lpfLFO, lpfLFOParam);
-    // castJuceParameter(apvts, ParameterID::lpfVelocity, lpfVelocityParam);
     castJuceParameter(apvts, ParameterID::lpfAttack, lpfAttackParam);
     castJuceParameter(apvts, ParameterID::lpfDecay, lpfDecayParam);
     castJuceParameter(apvts, ParameterID::lpfSustain, lpfSustainParam);
@@ -50,7 +49,6 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::hpfReso, hpfResoParam);
     castJuceParameter(apvts, ParameterID::hpfEnv, hpfEnvParam);
     castJuceParameter(apvts, ParameterID::hpfLFO, hpfLFOParam);
-    // castJuceParameter(apvts, ParameterID::hpfVelocity, hpfVelocityParam);
     castJuceParameter(apvts, ParameterID::hpfAttack, hpfAttackParam);
     castJuceParameter(apvts, ParameterID::hpfDecay, hpfDecayParam);
     castJuceParameter(apvts, ParameterID::hpfSustain, hpfSustainParam);
@@ -290,14 +288,9 @@ bool CppsynthAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* CppsynthAudioProcessor::createEditor()
 {
-    // Generic JUCE UI
-    // // By referencing *this (pluginprocessor), the GUI is automatically made using the layout
-    // // created with createParameterLayout()
-    // auto editor = new juce::GenericAudioProcessorEditor(*this);
-    // editor->setSize(500, 800);
-    // return editor;
-    
     // PluginEditor UI
+    // By referencing *this (pluginprocessor), the GUI is automatically made using the layout
+    // created with createParameterLayout()
     return new CppsynthAudioProcessorEditor(*this);
 }
 
@@ -329,15 +322,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     // LRN lambda definition : auto foo = [](T bar, ...)
     // LRN int without name is unnamed parameter (not actually used in function but might be required 
     //  to be present by interface, stuff like that...)
-//    // Lambda to filter values under a treshold and return result as a String
-//    auto filterVelocityStringFromValue = [](float value, int)
-//    {
-//        if (value < -90.0f)
-//            return juce::String("OFF");
-//        else
-//            return juce::String(value);
-//    };
-    
     // Lambda to transform LFO rate to formatted String
     auto lfoRateStringFromValue = [](float value, int)
     {
@@ -465,15 +449,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
 //                                                           0.0f,
 //                                                           juce::AudioParameterFloatAttributes().withLabel("semi")));
 
-
-//    // Filter modulation velocity sensitivity amount, also OFF disables all velocity for amplitude
-//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lpfVelocity,
-//                                                           "Velocity",
-//                                                           juce::NormalisableRange<float>(-100.0f, 100.0f, 1.0f),
-//                                                           0.0f,
-//                                                           juce::AudioParameterFloatAttributes()
-//                                                            .withLabel("%")
-//                                                            .withStringFromValueFunction(lpfVelocityStringFromValue)));
     
     // Envelope attack
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::envAttack,
@@ -738,18 +713,7 @@ void CppsynthAudioProcessor::update()
     // Volume
     synth.volumeTrim = 0.0008f * (3.2f - 25.0f * synth.noiseLevel) * (1.5f - 0.5f * lpfReso);
     synth.outputLevelSmoother.setTargetValue(juce::Decibels::decibelsToGain(outputLevelParam->get()));
-    
-    // Filter velocity
-//    float lpfVelocity = lpfVelocityParam->get();
-//    if (lpfVelocity < -90.0f) {
-//        synth.velocitySensitivity = 0.0f;
-//        synth.ignoreVelocity = true;
-//    }
-//    else {
-//        synth.velocitySensitivity = 0.0005f * lpfVelocity;
-//        synth.ignoreVelocity = false;
-//    }
-    
+        
     // Velocity sensitivity toggle
     synth.ignoreVelocity = (velocitySensitivityParam->getIndex() == 0 ? true : false);
     

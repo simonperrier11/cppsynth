@@ -31,7 +31,6 @@ namespace ParameterID
     PARAMETER_ID(lpfReso)
     PARAMETER_ID(lpfEnv)
     PARAMETER_ID(lpfLFO)
-    // PARAMETER_ID(lpfVelocity)
     PARAMETER_ID(lpfAttack)
     PARAMETER_ID(lpfDecay)
     PARAMETER_ID(lpfSustain)
@@ -40,7 +39,6 @@ namespace ParameterID
     PARAMETER_ID(hpfReso)
     PARAMETER_ID(hpfEnv)
     PARAMETER_ID(hpfLFO)
-    // PARAMETER_ID(hpfVelocity)
     PARAMETER_ID(hpfAttack)
     PARAMETER_ID(hpfDecay)
     PARAMETER_ID(hpfSustain)
@@ -134,7 +132,6 @@ private:
     juce::AudioParameterFloat* lpfResoParam;
     juce::AudioParameterFloat* lpfEnvParam;
     juce::AudioParameterFloat* lpfLFOParam;
-    // juce::AudioParameterFloat* lpfVelocityParam;
     juce::AudioParameterFloat* lpfAttackParam;
     juce::AudioParameterFloat* lpfDecayParam;
     juce::AudioParameterFloat* lpfSustainParam;
@@ -143,7 +140,6 @@ private:
     juce::AudioParameterFloat* hpfResoParam;
     juce::AudioParameterFloat* hpfEnvParam;
     juce::AudioParameterFloat* hpfLFOParam;
-    // juce::AudioParameterFloat* hpfVelocityParam;
     juce::AudioParameterFloat* hpfAttackParam;
     juce::AudioParameterFloat* hpfDecayParam;
     juce::AudioParameterFloat* hpfSustainParam;
