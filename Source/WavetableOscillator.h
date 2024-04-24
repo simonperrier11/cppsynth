@@ -11,6 +11,8 @@
 #pragma once
 #include <JuceHeader.h>
 #include <vector>
+#include <stdlib.h>
+#include "Constants.h"
 
 /**
  This class represents a wavetable oscillator. A wavetable oscillator is an oscillator that uses a lookup table
@@ -35,9 +37,9 @@ public:
     float getSample();
     
     /**
-     Stops playback and resets index/index increment.
+     Stops playback and resets index/index increment. The starting index can be randomized.
      */
-    void stop();
+    void stop(bool phaseRand);
     
     /**
      Returns true if the oscillator is playing.

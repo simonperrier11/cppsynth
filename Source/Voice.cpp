@@ -21,7 +21,7 @@ void Voice::reset()
     osc1Morph = 0.f;
     osc2Morph = 0.f;
     ringMod = false;
-    sustained = false;
+    phaseRand = false;
     sustained = false;
 }
     
@@ -39,15 +39,15 @@ float Voice::render(float noise)
 
     // If the envelope is done (level extremely close to 0), stop note
     if (envelope < constants::SILENCE_TRESHOLD) {
-        sineTableOsc1[note].stop();
-        sawTableOsc1[note].stop();
-        triTableOsc1[note].stop();
-        squareTableOsc1[note].stop();
+        sineTableOsc1[note].stop(phaseRand);
+        sawTableOsc1[note].stop(phaseRand);
+        triTableOsc1[note].stop(phaseRand);
+        squareTableOsc1[note].stop(phaseRand);
         
-        sineTableOsc2[note].stop();
-        sawTableOsc2[note].stop();
-        triTableOsc2[note].stop();
-        squareTableOsc2[note].stop();
+        sineTableOsc2[note].stop(phaseRand);
+        sawTableOsc2[note].stop(phaseRand);
+        triTableOsc2[note].stop(phaseRand);
+        squareTableOsc2[note].stop(phaseRand);
 
         note = constants::NO_NOTE_VALUE;
     }

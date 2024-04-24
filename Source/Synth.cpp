@@ -75,8 +75,9 @@ void Synth::render(float** outputBuffers, int sampleCount)
     for (int v = 0; v < constants::MAX_VOICES; ++v) {
         Voice& voice = voices[v];
         
-        // Update voice ring mod
+        // Update some voice toggles
         voice.ringMod = ringMod;
+        voice.phaseRand = phaseRand;
         
         // Update OSC settings
         voice.osc1Morph = osc1Morph;

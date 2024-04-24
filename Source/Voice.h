@@ -34,6 +34,7 @@ public:
 //    float glideRate; // copy of synth's glide rate
     bool ringMod;
     bool sustained;
+    bool phaseRand;
     
     // Filters
     LowPassFilter lpf;

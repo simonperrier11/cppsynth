@@ -46,9 +46,10 @@ float WavetableOscillator::interpolateLinearly()
     return truncatedIndexWeight * waveTable[truncatedIndex] + nextIndexWeight * waveTable[nextIndex];
 }
 
-void WavetableOscillator::stop()
+void WavetableOscillator::stop(bool phaseRand)
 {
-    index = 0.0f;
+    // If phaseRand is one, the starting phase of the oscillator will be randomized on the next note
+    index = (phaseRand ? static_cast<float>(rand() % constants::WAVETABLE_LENGTH) : 0.0f);
     indexIncrement = 0.0f;
 }
 

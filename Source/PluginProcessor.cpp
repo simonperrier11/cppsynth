@@ -68,6 +68,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::velocitySensitivity, velocitySensitivityParam);
     castJuceParameter(apvts, ParameterID::noiseType, noiseTypeParam);
     castJuceParameter(apvts, ParameterID::ringMod, ringModParam);
+    castJuceParameter(apvts, ParameterID::phaseRand, phaseRandParam);
     
     // Add listener for parameter changes
     apvts.state.addListener(this);
@@ -376,9 +377,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                             juce::StringArray { "Off", "On" },
                                                             1));
     
-    // Velocity sensitivity toggle
+    // Ring modulation
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::ringMod,
                                                             "Ring Mod",
+                                                            juce::StringArray { "Off", "On" },
+                                                            0));
+    // Phase randomizer
+    layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::phaseRand,
+                                                            "Phase Randomizer",
                                                             juce::StringArray { "Off", "On" },
                                                             0));
     
@@ -749,6 +755,9 @@ void CppsynthAudioProcessor::update()
     
     // Ring mod
     synth.ringMod = (ringModParam->getIndex() == 0 ? false : true);
+    
+    // Phase randomizer on new notes
+    synth.phaseRand = (phaseRandParam->getIndex() == 0 ? false : true);
     
     // LFO
     // Skew parameter value to 0.02Hz-20Hz approx.

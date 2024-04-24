@@ -58,6 +58,7 @@ namespace ParameterID
     PARAMETER_ID(velocitySensitivity)
     PARAMETER_ID(noiseType)
     PARAMETER_ID(ringMod)
+    PARAMETER_ID(phaseRand)
 
     #undef PARAMETER_ID
 }
@@ -160,6 +161,7 @@ private:
     juce::AudioParameterChoice* velocitySensitivityParam;
     juce::AudioParameterChoice* noiseTypeParam;
     juce::AudioParameterChoice* ringModParam;
+    juce::AudioParameterChoice* phaseRandParam;
     
     // Atomic (thread-safe) flag to signal a parameter change
     std::atomic<bool> parametersChanged { false };

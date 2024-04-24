@@ -132,6 +132,9 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
     ringModButton.setButtonText(juce::CharPointer_UTF8("Ring Mod"));
     ringModButton.setClickingTogglesState(true);
     addAndMakeVisible(ringModButton);
+    phaseRandButton.setButtonText(juce::CharPointer_UTF8("Phase Rand"));
+    phaseRandButton.setClickingTogglesState(true);
+    addAndMakeVisible(phaseRandButton);
 
     // MASTER
     masterLabel.setText("# MASTER SETTINGS #", {});
@@ -273,6 +276,8 @@ void CppsynthAudioProcessorEditor::resized()
     outputLevelKnob.setBounds(masterElem);
     masterElem = masterElem.withY(masterElem.getBottom() + 20);
     tuningKnob.setBounds(masterElem);
+    masterElem = masterElem.withY(masterElem.getBottom() + 20);
+    phaseRandButton.setBounds(masterElem);
     masterElem = masterElem.withY(masterElem.getBottom() + 20);
 
     // Other settings

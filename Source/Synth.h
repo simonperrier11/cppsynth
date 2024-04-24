@@ -52,6 +52,7 @@ public:
     int noiseType; // 0: White; 1: Pink
     bool ignoreVelocity;
     bool ringMod;
+    bool phaseRand;
     juce::LinearSmoothedValue<float> outputLevelSmoother;
     
     Synth();
