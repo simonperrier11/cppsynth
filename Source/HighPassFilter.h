@@ -12,6 +12,9 @@
 
 #include "StateVariableFilter.h"
 
+/**
+ This class represents the synth's high-pass filter, a type of state variable filter.
+ */
 class HighPassFilter : public StateVariableFilter
 {
 public:

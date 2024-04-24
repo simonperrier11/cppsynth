@@ -12,6 +12,9 @@
 
 #include <JuceHeader.h>
 
+/**
+ This class represents the general look and feel for the UI.
+ */
 class LookAndFeel : public juce::LookAndFeel_V4 {
 public:
     LookAndFeel();
