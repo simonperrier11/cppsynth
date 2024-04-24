@@ -140,8 +140,6 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
     addAndMakeVisible(masterLabel);
     outputLevelKnob.label = "Volume";
     addAndMakeVisible(outputLevelKnob);
-//    octaveKnob.label = "Octave";
-//    addAndMakeVisible(octaveKnob);
     tuningKnob.label = "Cents";
     addAndMakeVisible(tuningKnob);
     

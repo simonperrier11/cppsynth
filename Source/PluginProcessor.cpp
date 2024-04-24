@@ -61,7 +61,7 @@ CppsynthAudioProcessor::CppsynthAudioProcessor()
     castJuceParameter(apvts, ParameterID::envRelease, envReleaseParam);
     castJuceParameter(apvts, ParameterID::lfoRate, lfoRateParam);
     castJuceParameter(apvts, ParameterID::vibrato, vibratoParam);
-    castJuceParameter(apvts, ParameterID::octave, octaveParam);
+//    castJuceParameter(apvts, ParameterID::octave, octaveParam);
     castJuceParameter(apvts, ParameterID::tuning, tuningParam);
     castJuceParameter(apvts, ParameterID::outputLevel, outputLevelParam);
     castJuceParameter(apvts, ParameterID::polyMode, polyModeParam);
@@ -627,11 +627,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
                                                            0.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
 
-    // Master tune
-    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::octave,
-                                                           "Octave",
-                                                           juce::NormalisableRange<float>(-2.0f, 2.0f, 1.0f),
-                                                           0.0f));
+//    // Master tune
+//    layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::octave,
+//                                                           "Octave",
+//                                                           juce::NormalisableRange<float>(-2.0f, 2.0f, 1.0f),
+//                                                           0.0f));
 
     // Master finetune
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::tuning,
@@ -702,9 +702,10 @@ void CppsynthAudioProcessor::update()
     synth.osc2detune = std::pow(2.0f, (semi + 0.01f * cent) / 12.0f) + 0.00001;
     
     // Tuning
-    float octave = octaveParam->get();
+//    float octave = octaveParam->get();
     float tuning = tuningParam->get();
-    synth.tune = octave * 12.0f + tuning / 100.0f;
+//    synth.tune = octave * 12.0f + tuning / 100.0f;
+    synth.tune = tuning / 100.0f;
     
     // OSC morph
     synth.osc1Morph = osc1MorphParam->get();

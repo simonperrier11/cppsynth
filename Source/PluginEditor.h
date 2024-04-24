@@ -59,8 +59,6 @@ private:
     // MASTER
     RotaryKnob outputLevelKnob;
     SliderAttachment outputLevelAttachment { audioProcessor.apvts, ParameterID::outputLevel.getParamID(), outputLevelKnob.slider };
-    RotaryKnob octaveKnob;
-    SliderAttachment octaveAttachment { audioProcessor.apvts, ParameterID::octave.getParamID(), octaveKnob.slider };
     RotaryKnob tuningKnob;
     SliderAttachment tuningAttachment { audioProcessor.apvts, ParameterID::tuning.getParamID(), tuningKnob.slider };
 

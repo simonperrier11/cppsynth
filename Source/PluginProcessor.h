@@ -51,7 +51,7 @@ namespace ParameterID
     PARAMETER_ID(envRelease)
     PARAMETER_ID(lfoRate)
     PARAMETER_ID(vibrato)
-    PARAMETER_ID(octave)
+//    PARAMETER_ID(octave)
     PARAMETER_ID(tuning)
     PARAMETER_ID(outputLevel)
     PARAMETER_ID(polyMode)
@@ -153,7 +153,7 @@ private:
     juce::AudioParameterFloat* envReleaseParam;
     juce::AudioParameterFloat* lfoRateParam;
     juce::AudioParameterFloat* vibratoParam;
-    juce::AudioParameterFloat* octaveParam;
+//    juce::AudioParameterFloat* octaveParam;
     juce::AudioParameterFloat* tuningParam;
     juce::AudioParameterFloat* outputLevelParam;
     juce::AudioParameterChoice* polyModeParam;
