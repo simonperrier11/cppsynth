@@ -137,7 +137,7 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
     addAndMakeVisible(phaseRandButton);
 
     // MASTER
-    masterLabel.setText("# MASTER SETTINGS #", {});
+    masterLabel.setText("# MASTER/SETTINGS #", {});
     masterLabel.setJustificationType(juce::Justification::centred);
     masterLabel.setColour(juce::Label::textColourId, juce::Colours::greenyellow);
     addAndMakeVisible(masterLabel);
@@ -145,6 +145,11 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
     addAndMakeVisible(outputLevelKnob);
     tuningKnob.label = "Cents";
     addAndMakeVisible(tuningKnob);
+    // Maybe this should be an image? Or multiple labels?
+    titleLabel.setText("/*              cppsynth                v1.0                */", {});
+    titleLabel.setJustificationType(juce::Justification::left);
+    titleLabel.setColour(juce::Label::textColourId, juce::Colours::greenyellow);
+    addAndMakeVisible(titleLabel);
     
     // Plugin size
     setSize(1100, 550);
@@ -173,7 +178,7 @@ void CppsynthAudioProcessorEditor::resized()
     juce::Rectangle envElem(260, 60, 80, 100);
     juce::Rectangle lfoLabelPos(380, 10, 80, 40);
     juce::Rectangle lfoElem(380, 60, 80, 100);
-    juce::Rectangle lpfLabelPos(515, 10, 120, 40);
+    juce::Rectangle lpfLabelPos(520, 10, 120, 40);
     juce::Rectangle lpfElem(500, 60, 80, 100);
     juce::Rectangle lpfEnvElem(585, 60, 80, 100);
     juce::Rectangle hpfLabelPos(710, 10, 120, 40);
@@ -182,6 +187,7 @@ void CppsynthAudioProcessorEditor::resized()
     juce::Rectangle masterLabelPos(930, 10, 120, 40);
     juce::Rectangle masterElem(900, 60, 80, 100);
     juce::Rectangle lastColElem(995, 60, 80, 100);
+    juce::Rectangle titleLabelPos(950, 375, 80, 200);
     
     // OSC1
     osc1Label.setBounds(osc1LabelPos);
@@ -279,6 +285,8 @@ void CppsynthAudioProcessorEditor::resized()
     masterElem = masterElem.withY(masterElem.getBottom() + 20);
     phaseRandButton.setBounds(masterElem);
     masterElem = masterElem.withY(masterElem.getBottom() + 20);
+    
+    titleLabel.setBounds(titleLabelPos);
 
     // Other settings
     polyModeButton.setBounds(lastColElem);

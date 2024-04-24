@@ -46,6 +46,7 @@ private:
     juce::Label lpfLabel;
     juce::Label hpfLabel;
     juce::Label masterLabel;
+    juce::Label titleLabel;
     
     // LRN using here is used to set shortcut for class names (aliasing)
     using APVTS = juce::AudioProcessorValueTreeState;
