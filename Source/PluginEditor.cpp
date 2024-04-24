@@ -147,7 +147,7 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
 //    // LRN: minX, minY, maxX, maxY
 //    setResizeLimits(600, 400, 1400, 1000);
     // Plugin size
-    setSize(1125, 600);
+    setSize(1100, 550);
 }
 
 CppsynthAudioProcessorEditor::~CppsynthAudioProcessorEditor()
@@ -197,8 +197,10 @@ void CppsynthAudioProcessorEditor::resized()
     // Noise
     noiseLabel.setBounds(noiseLabelPos);
     osc1Elem = osc1Elem.withY(noiseLabelPos.getBottom() + 10);
+    osc1Elem = osc1Elem.withHeight(50);
     noiseTypeButton.setBounds(osc1Elem);
     osc1Elem = osc1Elem.withY(osc1Elem.getBottom() + 20);
+    osc1Elem = osc1Elem.withHeight(100);
     noiseLevelKnob.setBounds(osc1Elem);
     osc1Elem = osc1Elem.withY(osc1Elem.getBottom() + 20);
 
