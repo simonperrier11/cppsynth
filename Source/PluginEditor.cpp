@@ -143,9 +143,6 @@ CppsynthAudioProcessorEditor::CppsynthAudioProcessorEditor (CppsynthAudioProcess
     tuningKnob.label = "Cents";
     addAndMakeVisible(tuningKnob);
     
-//    setResizable(true, false);
-//    // LRN: minX, minY, maxX, maxY
-//    setResizeLimits(600, 400, 1400, 1000);
     // Plugin size
     setSize(1100, 550);
 }
@@ -158,10 +155,6 @@ void CppsynthAudioProcessorEditor::paint(juce::Graphics& g)
 {
     // Background color
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-
-//    g.setColour (juce::Colours::white);
-//    g.setFont (15.0f);
-//    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void CppsynthAudioProcessorEditor::resized()
@@ -279,8 +272,6 @@ void CppsynthAudioProcessorEditor::resized()
     masterLabel.setBounds(masterLabelPos);
     outputLevelKnob.setBounds(masterElem);
     masterElem = masterElem.withY(masterElem.getBottom() + 20);
-//    octaveKnob.setBounds(masterElem);
-//    masterElem = masterElem.withY(masterElem.getBottom() + 20);
     tuningKnob.setBounds(masterElem);
     masterElem = masterElem.withY(masterElem.getBottom() + 20);
 
