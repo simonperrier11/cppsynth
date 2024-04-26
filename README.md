@@ -2,6 +2,8 @@
 
 ```cppsynth```, short for C++ synthesizer, is a simple open source wavetable polyphonic synthesizer made in C++ with the JUCE framework. It can be compiled as a VST3 plugin, or as a standalone application.
 
+Demo : https://youtu.be/t_3MBXmM0h8
+
 <img width="1100" alt="cppsynth_demo" src="https://github.com/simonperrier11/cppsynth/assets/44238249/acfecfa4-0ff2-4d22-86a0-19d3ebd53ef2">
 
 ## Features 🎛️
