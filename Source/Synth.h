@@ -25,35 +25,36 @@
 class Synth
 {
 public:
-    float osc1Level, osc2Level, noiseLevel;
-    float envAttack, envDecay, envSustain, envRelease;
-    float tune;
-    float osc2detune;
-    float osc1Morph, osc2Morph;
-    float volumeTrim;
-    float velocitySensitivity;
+    float osc1Level, osc2Level, noiseLevel; // output levels
+    float envAttack, envDecay, envSustain, envRelease; // envelope levels
+    float tune; // synth's cents tuning
+    float osc2detune; // overall tuning of OSC2 (semitones + cents)
+    float osc1Morph, osc2Morph; // OSC1&2 shape
+    float volumeTrim; // master output level trim
+    float velocitySensitivity; // velocity sensitivity multiplier
     float lfoInc; // phase increment for LFO (between 0 and 2pi)
     float vibrato; // pitch LFO depth
-    float modWheel;
-    float vibratoMod;
+    float modWheel; // modulation wheel value
+    float vibratoMod; // vibrato modulation valye
 //    float glideRate; // speed of glide
 //    float glideBend; // adds a glide up or down before new notes
+    // LPF values
     float lpfCutoff, lpfQ;
     float lpfLFODepth;
     float lpfAttack, lpfDecay, lpfSustain, lpfRelease;
     float lpfEnvDepth;
+    // HPF valyes
     float hpfCutoff, hpfQ;
     float hpfLFODepth;
     float hpfAttack, hpfDecay, hpfSustain, hpfRelease;
     float hpfEnvDepth;
-    int numVoices;
     int polyMode; // 0: Mono; 1: Poly;
 //    int glideMode;
     int noiseType; // 0: White; 1: Pink
-    bool ignoreVelocity;
-    bool ringMod;
-    bool phaseRand;
-    juce::LinearSmoothedValue<float> outputLevelSmoother;
+    bool ignoreVelocity; // velocity toggle
+    bool ringMod; // ring mod toggle
+    bool phaseRand; // phase randomizer toggle
+    juce::LinearSmoothedValue<float> outputLevelSmoother; // smoother for output level
     
     Synth();
     
@@ -124,14 +125,15 @@ private:
      we still use the max voices constant, since 10 held notes is enough.
      */
     int heldNotesMono[constants::MAX_VOICES];
-    float sampleRate;
-    float pitchBend;
+    float sampleRate; // sample rate taken from host
+    float pitchBend; // pitch bend value
     float lfo; // current phase of LFO sine wave
-    float lpfZip; // holds the smoothed version of LPF mod value (to remove zipper noise)
+    // zips hold the smoothed values for filter modulation factors
+    float lpfZip;
     float hpfZip;
-    bool sustainPressed;
+    bool sustainPressed; // sustain pressed toggle
     // LRN allocate arr size directly in std::array<Type, Size> arr;
-    std::array<Voice, constants::MAX_VOICES> voices;
+    std::array<Voice, constants::MAX_VOICES> voices; // voices array
     WhiteNoise whiteNoise;
     PinkNoise pinkNoise;
     

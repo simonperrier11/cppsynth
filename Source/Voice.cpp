@@ -52,7 +52,7 @@ float Voice::render(float noise)
         note = constants::NO_NOTE_VALUE;
     }
     
-    // All tables are "playing" at the same time, so we only need to check in one
+    // All tables are "playing" at the same time, so we only need to check on one
     if (sineTableOsc1[note].isPlaying()) {
         float sineSample = sineTableOsc1[note].getSample();
         float triSample = triTableOsc1[note].getSample();
@@ -98,29 +98,26 @@ void Voice::updateLFO()
 {
 //    // Update frequency with glide rate
 //    frequency += glideRate * (target - frequency);
-    
-    // LPF
-    float lpfEnvMod = lpfEnv.nextValue() * lpfEnvDepth;
 
-    // Update coefficiants of filter with modulation, if any
+    // Update coefficiants of LPF with modulation, if any
+    float lpfEnvMod = lpfEnv.nextValue() * lpfEnvDepth;
     float modulatedCutoff = lpfCutoff * std::exp(lpfMod + lpfEnvMod);
     modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f); // clamp to prevent crazy values
     lpf.updateCoefficiants(modulatedCutoff, lpfQ);
     
-    // HPF
+    // same thing with HPF
     float hpfEnvMod = hpfEnv.nextValue() * hpfEnvDepth;
-    
     float modulatedHpfCutoff = hpfCutoff * std::exp(hpfMod + hpfEnvMod);
     modulatedHpfCutoff = std::clamp(modulatedHpfCutoff, 30.0f, 20000.0f);
     hpf.updateCoefficiants(modulatedHpfCutoff, hpfQ);
 }
     
 float Voice::interpolatedSample(float factor, float s1, float s2, float s3, float s4) {
-    if (factor <= 0.33f) {
+    if (factor <= 0.33f) { // interpolate between sine and triangle
         return s1 + (s2 - s1) * (factor / 0.33f);
-    } else if (factor <= 0.66f) {
+    } else if (factor <= 0.66f) { // interpolate between triangle and square
         return s2 + (s3 - s2) * ((factor - 0.33f) / 0.33f);
-    } else {
+    } else { // interpolate between square and saw
         return s3 + (s4 - s3) * ((factor - 0.66f) / 0.33f);
     }
 }

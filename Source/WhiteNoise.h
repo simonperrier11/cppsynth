@@ -23,7 +23,7 @@ public:
         random.setSeedRandomly();
     }
 
-    float nextValue()
+    float getSample()
     {
         return random.nextFloat() * 2.0f - 1.0f;
     }

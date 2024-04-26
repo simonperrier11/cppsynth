@@ -37,13 +37,13 @@ void RotaryKnob::paint(juce::Graphics& g)
     g.setColour(juce::Colours::white);
     g.setFont(15.0f);
     
+    // LRN Get juce::Rectangle object with current width and height of component
     auto bounds = getLocalBounds();
     g.drawText(label, juce::Rectangle<int>{ 0, 0, bounds.getWidth(), labelHeight }, juce::Justification::centred);
 }
 
 void RotaryKnob::resized()
 {
-    // Get juce::Rectangle object with current width and height of component
     auto bounds = getLocalBounds();
     slider.setBounds(0, labelHeight, bounds.getWidth(), bounds.getHeight() - labelHeight);
 }

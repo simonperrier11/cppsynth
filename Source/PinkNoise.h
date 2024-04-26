@@ -28,7 +28,7 @@ public:
         random.setSeedRandomly();
     }
     
-    float nextValue()
+    float getSample()
     {
         float whiteNoise = random.nextFloat() * 2.0f - 1.0f;
         b0 = 0.99765f * b0 + whiteNoise * 0.0990460f;
@@ -40,5 +40,5 @@ public:
     }
     
 private:
-    float b0, b1, b2;
+    float b0, b1, b2; // pink noise coefficiants
 };

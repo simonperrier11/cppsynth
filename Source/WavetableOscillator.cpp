@@ -24,7 +24,7 @@ void WavetableOscillator::setFrequency(float frequency)
 
 float WavetableOscillator::getSample()
 {
-    const auto sample = interpolateLinearly();
+    const float sample = interpolateLinearly();
     index += indexIncrement;
     
     // After increment, bring back the index to the waveTable size's range
@@ -36,19 +36,19 @@ float WavetableOscillator::getSample()
 float WavetableOscillator::interpolateLinearly()
 {
     // Get current index and next sample index
-    const auto truncatedIndex = static_cast<int>(index);
-    const auto nextIndex = (truncatedIndex + 1) % static_cast<int>(waveTable.size());
+    const int truncatedIndex = static_cast<int>(index);
+    const int nextIndex = (truncatedIndex + 1) % static_cast<int>(waveTable.size());
     
     // Calculate weights of both indexes
-    const auto nextIndexWeight = index - static_cast<float>(truncatedIndex);
-    const auto truncatedIndexWeight = 1.0f - nextIndexWeight;
+    const float nextIndexWeight = index - static_cast<float>(truncatedIndex);
+    const float truncatedIndexWeight = 1.0f - nextIndexWeight;
     
     return truncatedIndexWeight * waveTable[truncatedIndex] + nextIndexWeight * waveTable[nextIndex];
 }
 
 void WavetableOscillator::stop(bool phaseRand)
 {
-    // If phaseRand is one, the starting phase of the oscillator will be randomized on the next note
+    // Starting phase of the oscillator will be randomized on the next note if phaseRand is activated
     index = (phaseRand ? static_cast<float>(rand() % constants::WAVETABLE_LENGTH) : 0.0f);
     indexIncrement = 0.0f;
 }

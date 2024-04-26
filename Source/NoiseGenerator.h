@@ -22,11 +22,10 @@ public:
     virtual void reset() = 0;
 
     /**
-     Returns the next value for the noise generator.
+     Returns the next sample for the noise generator.
      */
-    virtual float nextValue() = 0;
+    virtual float getSample() = 0;
 
 protected:
-    // The source of noise for all child classes
-    juce::Random random;
+    juce::Random random; // seed for noise
 };

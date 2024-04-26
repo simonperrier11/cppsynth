@@ -14,7 +14,7 @@
 
 /**
  This class contains the necessary functions to generate various wavetables.
- The fuctions here are taken and altered from here : https://thewolfsound.com/android-synthesizer-6-wavetable-synthesis-in-c-plus-plus/#wavetable-factory
+ The fuctions in this class are inspired  from here : https://thewolfsound.com/android-synthesizer-6-wavetable-synthesis-in-c-plus-plus/#wavetable-factory
  The wavetables generated are, except for the sine, limited in harmonics to prevent aliasing as much as possible.
  The harmonics limit is set depending on the frequency associated to the MIDI note. Higher frequencies will have less, 
  lower frequencies will have more.

@@ -19,22 +19,22 @@
             file="Source/WavetableOscillator.cpp"/>
       <FILE id="kWVYlG" name="WavetableOscillator.h" compile="0" resource="0"
             file="Source/WavetableOscillator.h"/>
+      <FILE id="I6Yynu" name="NoiseGenerator.h" compile="0" resource="0"
+            file="Source/NoiseGenerator.h"/>
       <FILE id="nB4wQ0" name="PinkNoise.h" compile="0" resource="0" file="Source/PinkNoise.h"/>
       <FILE id="GYMRbp" name="WhiteNoise.h" compile="0" resource="0" file="Source/WhiteNoise.h"/>
       <FILE id="R4ttAH" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/LookAndFeel.cpp"/>
       <FILE id="PM3qsY" name="LookAndFeel.h" compile="0" resource="0" file="Source/LookAndFeel.h"/>
       <FILE id="rnyYgc" name="RotaryKnob.cpp" compile="1" resource="0" file="Source/RotaryKnob.cpp"/>
       <FILE id="BUCaHv" name="RotaryKnob.h" compile="0" resource="0" file="Source/RotaryKnob.h"/>
+      <FILE id="ea2MED" name="StateVariableFilter.h" compile="0" resource="0"
+            file="Source/StateVariableFilter.h"/>
       <FILE id="vHZalZ" name="HighPassFilter.h" compile="0" resource="0"
             file="Source/HighPassFilter.h"/>
       <FILE id="DQm7PC" name="LowPassFilter.h" compile="0" resource="0" file="Source/LowPassFilter.h"/>
-      <FILE id="ea2MED" name="StateVariableFilter.h" compile="0" resource="0"
-            file="Source/StateVariableFilter.h"/>
       <FILE id="L6xK3W" name="Envelope.cpp" compile="1" resource="0" file="Source/Envelope.cpp"/>
       <FILE id="N1NCWE" name="Envelope.h" compile="0" resource="0" file="Source/Envelope.h"/>
       <FILE id="yFapBO" name="Utils.h" compile="0" resource="0" file="Source/Utils.h"/>
-      <FILE id="I6Yynu" name="NoiseGenerator.h" compile="0" resource="0"
-            file="Source/NoiseGenerator.h"/>
       <FILE id="e6gMkH" name="Constants.h" compile="0" resource="0" file="Source/Constants.h"/>
       <FILE id="OxdErV" name="Voice.cpp" compile="1" resource="0" file="Source/Voice.cpp"/>
       <FILE id="Cp3weF" name="Voice.h" compile="0" resource="0" file="Source/Voice.h"/>

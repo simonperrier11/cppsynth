@@ -11,8 +11,7 @@
 #pragma once
 
 /**
- This namespace contains constant values used throughout the plugin. Of course, re-compilation is needed when
- changing any of these.
+ This namespace contains constant values used throughout the plugin.
  */
 namespace constants
 {

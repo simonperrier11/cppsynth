@@ -16,7 +16,7 @@ class StateVariableFilter
      The state-variable filter implemented here is from : https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf
      */
 public:
-    float sampleRate;
+    float sampleRate; // copy of the synths's sample rate
     
     /**
      Tick function of the filter.

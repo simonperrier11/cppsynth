@@ -13,7 +13,7 @@
 
 Synth::Synth()
 {
-    // Default sample rate to 44.1Hz
+    // Default sample rate to 44.1Hz if not specified by host
     sampleRate = 44100.0f;
 }
 
@@ -110,11 +110,11 @@ void Synth::render(float** outputBuffers, int sampleCount)
         float noise;
         switch (noiseType) {
             case 0: { // White
-                noise = whiteNoise.nextValue() * noiseLevel;
+                noise = whiteNoise.getSample() * noiseLevel;
                 break;
             }
             case 1: { // Pink
-                noise = pinkNoise.nextValue() * noiseLevel;
+                noise = pinkNoise.getSample() * noiseLevel;
                 break;
             }
         }
@@ -162,8 +162,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
     }
 
     // Protect buffers from loudness
-    loudnessProtectBuffer(outputBufferLeft, sampleCount);
-    loudnessProtectBuffer(outputBufferRight, sampleCount);
+//    loudnessProtectBuffer(outputBufferLeft, sampleCount);
+//    loudnessProtectBuffer(outputBufferRight, sampleCount);
 }
 
 void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
@@ -172,7 +172,6 @@ void Synth::midiMessage(uint8_t data0, uint8_t data1, uint8_t data2)
     // channel (last 4 bits). We simply need to do a binary AND with 11110000
     // and 00001111 to get both parts respectively
     uint8_t command = data0 & 0xF0;
-    // uint8_t channel = data0 & 0x0F;
     
     // Force set values to 0-127 range by doing binary AND, just in case
     uint8_t note = data1 & 0x7F;

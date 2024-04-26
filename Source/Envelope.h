@@ -18,13 +18,12 @@
 class Envelope
 {
 public:
-    // Output level of the envelope
-    float level;
+    float level; // output level of the envelope
 
-    // Different multiplier values are used at different stages of the envelope
+    // different multiplier values are used at different stages of the envelope
     float attackMultiplier;
     float decayMultiplier;
-    float sustainLevel; // not a stage in itself
+    float sustainLevel; // sustain is not a stage in itself
     float releaseMultiplier;
     
     /**
@@ -57,9 +56,6 @@ public:
      */
     void release();
 private:
-    // Multiplier that is needed to make level go from 1.0 to 0.0001 (silence)
-    //  in a certain amout of time
-    float multiplier;
-    // Target value of the envelope
-    float target;
+    float multiplier; // envelope multiplier to calculate slope from 1.0 to silence
+    float target; // Target value of the envelope
 };

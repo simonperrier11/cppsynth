@@ -25,18 +25,20 @@
 class Voice
 {
 public:
-    int note; // the MIDI note number for the current voice
-    float frequency; // the base frequency of the note played on OSC1 for this voice
-    float velocityAmp;
-    float osc1Level;
-    float osc2Level;
+    int note; // MIDI note number for the current voice
+    float frequency; // base frequency of the note played on OSC1 for this voice
+    float velocityAmp; // velocity amplitude multiplier
+    float osc1Level; // OSC1 amplitude multiplier
+    float osc2Level; // OSC2 amplitude multiplier
 //    float target; // target for glide
 //    float glideRate; // copy of synth's glide rate
-    bool ringMod;
-    bool sustained;
-    bool phaseRand;
+    float osc1Morph; // OSC1 shape
+    float osc2Morph; // OSC2 shape
+    bool ringMod; // ring mod toggle
+    bool sustained; // sustain toggle
+    bool phaseRand; // phase randomizer toggle
     
-    // Filters
+    // filters values
     LowPassFilter lpf;
     HighPassFilter hpf;
     float lpfCutoff;
@@ -45,8 +47,6 @@ public:
     float hpfQ;
     float lpfMod;
     float hpfMod;
-    float lpfEnvDepth;
-    float hpfEnvDepth;
     
     // OSC wavetables
     std::vector<WavetableOscillator> sineTableOsc1;
@@ -59,15 +59,13 @@ public:
     std::vector<WavetableOscillator> squareTableOsc2;
     std::vector<WavetableOscillator> sawTableOsc2;
     
-    // Wavetables morph factor
-    float osc1Morph;
-    float osc2Morph;
-    
-    // Envelopes
+    // envelopes
     Envelope env;
     Envelope lpfEnv;
     Envelope hpfEnv;
-    
+    float lpfEnvDepth;
+    float hpfEnvDepth;
+
     /**
      Resets the state of the voice instance and its components.
      */
@@ -89,12 +87,6 @@ public:
     void updateLFO();
 
     /**
-     Returns the interpolated sample across the four wave shapes.
-     Depending on factor value, interpolate between s1 and s2, s2 and s3 or s3 and s4.
-     */
-    float interpolatedSample(float factor, float s1, float s2, float s3, float s4);
-
-    /**
      Initializes the wavetable oscillators to be used by this voice.
      This should only be called whenever the sample rate is set, or when it changes.
      */
@@ -111,5 +103,12 @@ public:
      This is done at each render of the synth's voice to catch any changes.
      */
     void modFrequencyAtNote(int note, float pitchBend, float vibratoMod, float osc2Detune);
+    
+private:
+    /**
+     Returns the interpolated sample across the four wave shapes.
+     Depending on factor value, interpolate between s1 and s2, s2 and s3 or s3 and s4.
+     */
+    float interpolatedSample(float factor, float s1, float s2, float s3, float s4);
 };
 
