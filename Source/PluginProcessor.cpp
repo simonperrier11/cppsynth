@@ -359,7 +359,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::velocitySensitivity,
                                                             "Velocity Sensitivity",
                                                             juce::StringArray { "Off", "On" },
-                                                            1));
+                                                            0));
     
     // Ring modulation
     layout.add(std::make_unique<juce::AudioParameterChoice>(ParameterID::ringMod,
@@ -399,21 +399,21 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::osc2Level,
                                                            "OSC2 Level",
                                                            juce::NormalisableRange<float>(0.0f, 100.f, 1.0f),
-                                                           0.0f,
+                                                           100.0f,
                                                            juce::AudioParameterFloatAttributes().withLabel("%")));
     
     // OSC1 Morph
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::osc1Morph,
                                                            "OSC1 Shape",
                                                            juce::NormalisableRange<float>(0.f, 0.999f, 0.001f),
-                                                           0.0f,
+                                                           0.999f,
                                                            juce::AudioParameterFloatAttributes()));
     
     // OSC2 Morph
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::osc2Morph,
                                                            "OSC2 Shape",
                                                            juce::NormalisableRange<float>(0.f, 0.999f, 0.001f),
-                                                           0.0f,
+                                                           0.999f,
                                                            juce::AudioParameterFloatAttributes()));
 
     // Noise type
@@ -580,7 +580,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout CppsynthAudioProcessor::crea
     layout.add(std::make_unique<juce::AudioParameterFloat>(ParameterID::lfoRate,
                                                            "LFO Rate",
                                                            juce::NormalisableRange<float>(),
-                                                           0.0f,
+                                                           0.81f,
                                                            juce::AudioParameterFloatAttributes()
                                                             .withLabel("Hz")
                                                             .withStringFromValueFunction(lfoRateStringFromValue)));
