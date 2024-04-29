@@ -19,12 +19,12 @@ A short demo of the plugin running inside Bitwig Studio can be found here : http
 - Additional features : **Ring mod**, **phase randomizer** on new note, and **velocity sensitivity** toggle
 
 ## Build 🧑‍💻
-You will need the latest version of [JUCE 7](https://juce.com/get-juce/). To remove the JUCE splash screen, ake sure to enable GPL Mode by clicking on the "Sign in..." button at the top left, and selecting "Enable GPL Mode"
+You will need the latest version of [JUCE 7](https://juce.com/get-juce/). To remove the JUCE splash screen, make sure to enable GPL Mode by clicking on the "Sign in..." button at the top right of the Projucer window, and selecting "Enable GPL Mode"
 
 ### MacOS 🍎
 You will need [Xcode and the Command Line Tools for Xcode](https://developer.apple.com/xcode/resources/) in order to build the project.
 
-- Open the ```cppsynth.jucer``` project in JUCE
+- Open the ```cppsynth.jucer``` project in JUCE's Projucer
 - Make sure the selected exporter is set to Xcode (MacOS), and click on the "Save and export to IDE" button
 - In the scheme selection dropdown at the top of the IDE, select either "cppsynth - VST3" or "cppsynth - Standalone Plugin"
 - Build the project using the Start button, or by pressing ```cmd+B```
@@ -33,7 +33,7 @@ You will need [Xcode and the Command Line Tools for Xcode](https://developer.app
   
 ### Windows 🪟
 You will need [Visual Studio 2022 with C++](https://visualstudio.microsoft.com/vs/features/cplusplus/) in order to build the project.
-- Open the ```cppsynth.jucer``` project in JUCE
+- Open the ```cppsynth.jucer``` project in JUCE's Projucer
 - Make sure the selected exporter is set to Visual Studio 2022, and click on the "Save and export to IDE" button
 - In the Solution Configurations dropdown menu at the top of the IDE, select "Release"
 - In the Solution Explorer, select either "cppsynth_StandalonePlugin" or "cppsynth_VST3"
