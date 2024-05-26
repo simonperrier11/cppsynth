@@ -43,7 +43,7 @@ You will need [Visual Studio 2022 with C++](https://visualstudio.microsoft.com/v
 - If you compiled the project as a VST3 plugin, make sure to move the VST3 file to a folder that your DAW will recognize!
 
 ## Resources 💛
-The goal of this project was for me to learn about audio synthesis and digital signal processing, and to discover C++ and the JUCE framework. Making this project was mostly possible thanks to the excellent [_Creating Synthesizer Plug-Ins with C++ and JUCE_ book](https://www.theaudioprogrammer.com/synth-plugin-book) by Matthijs Hollemans (The Audio Programmer), as well as [various tutorials on sound synthesis](https://thewolfsound.com/sound-synthesis/) by Jan Wilczek (WolfSound). Big thanks! Other references are directly in the code as comments.
+The goal of this project was for me to learn about audio synthesis and digital signal processing, and to discover C++ and the JUCE framework. Making this project was mostly possible thanks to the excellent [_Creating Synthesizer Plug-Ins with C++ and JUCE_ book](https://www.theaudioprogrammer.com/synth-plugin-book) by Matthijs Hollemans (@hollance, The Audio Programmer), as well as [various tutorials on sound synthesis](https://thewolfsound.com/sound-synthesis/) by Jan Wilczek (@JanWilczek, WolfSound). Big thanks! Other references are directly in the code as comments.
 
 The font used for the user interface is the [JetBrains Mono font](https://www.jetbrains.com/lp/mono/).
 
