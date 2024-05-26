@@ -18,8 +18,8 @@ A short demo of the plugin running inside Bitwig Studio can be found here : http
 - MIDI keyboard input, with support of sustain, mod wheel and pitch wheel functionalities
 - Additional features : **Ring mod**, **phase randomizer** on new note, and **velocity sensitivity** toggle
 
-## Build 🧑‍💻
-You will need the latest version of [JUCE 7](https://juce.com/get-juce/). To remove the JUCE splash screen, make sure to enable GPL Mode by clicking on the "Sign in..." button at the top right of the Projucer window, and selecting "Enable GPL Mode"
+## Build 🛠️
+You will need the latest version of [JUCE 7](https://juce.com/get-juce/). To remove the JUCE splash screen, make sure to enable GPL Mode by clicking on the "Sign in..." button at the top right of the Projucer window, and selecting "Enable GPL Mode".
 
 ### MacOS 🍎
 You will need [Xcode and the Command Line Tools for Xcode](https://developer.apple.com/xcode/resources/) in order to build the project.
@@ -33,6 +33,7 @@ You will need [Xcode and the Command Line Tools for Xcode](https://developer.app
   
 ### Windows 🪟
 You will need [Visual Studio 2022 with C++](https://visualstudio.microsoft.com/vs/features/cplusplus/) in order to build the project.
+
 - Open the ```cppsynth.jucer``` project in JUCE's Projucer
 - Make sure the selected exporter is set to Visual Studio 2022, and click on the "Save and export to IDE" button
 - In the Solution Configurations dropdown menu at the top of the IDE, select "Release"
@@ -45,3 +46,6 @@ You will need [Visual Studio 2022 with C++](https://visualstudio.microsoft.com/v
 The goal of this project was for me to learn about audio synthesis and digital signal processing, and to discover C++ and the JUCE framework. Making this project was mostly possible thanks to the excellent [_Creating Synthesizer Plug-Ins with C++ and JUCE_ book](https://www.theaudioprogrammer.com/synth-plugin-book) by Matthijs Hollemans (The Audio Programmer), as well as [various tutorials on sound synthesis](https://thewolfsound.com/sound-synthesis/) by Jan Wilczek (WolfSound). Big thanks! Other references are directly in the code as comments.
 
 The font used for the user interface is the [JetBrains Mono font](https://www.jetbrains.com/lp/mono/).
+
+## Remarks ✍️
+Since this project was done mostly as a learning exercice, this plugin is far from perfect, and there will be a lot of (maybe obvious and unnecessary) comments. Comments preceded by "LRN" are notes about C++/JUCE/audio programming concepts I learned while making this project. Feel free to clone or fork it, and make it better!
